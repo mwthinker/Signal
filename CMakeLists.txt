@@ -1,23 +1,22 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(Signal)
-if (MSVC)
-else (MSVC)
-	SET(CMAKE_CXX_FLAGS "-std=c++11")
-endif (MSVC)
+cmake_minimum_required(VERSION 2.8)
+project(Signal)
+if (NOT MSVC)
+	set(CMAKE_CXX_FLAGS "-std=c++11")
+endif ()
 
 # Source files.
-SET(SOURCES_EXTRA
+set(SOURCES_EXTRA
 	src/mw/signal.h
 	src/mw/signals/connection.cpp
 	src/mw/signals/connection.h
 )
 
-SET(SOURCES_EXTRA_TEST
+set(SOURCES_EXTRA_TEST
 	srcTest/main.cpp
 )
 # End of source files.
 
-ADD_LIBRARY(Signal ${SOURCES_EXTRA})
-INCLUDE_DIRECTORIES(src)
-ADD_EXECUTABLE(SignalTest ${SOURCES_EXTRA_TEST})
-TARGET_LINK_LIBRARIES(SignalTest Signal)
+add_library(Signal ${SOURCES_EXTRA})
+include_directories(src)
+add_executable(SignalTest ${SOURCES_EXTRA_TEST})
+target_link_libraries(SignalTest Signal)
