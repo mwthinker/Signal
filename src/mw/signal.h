@@ -15,14 +15,12 @@ namespace mw {
 	public:
 		typedef std::function<void(A...)> Callback;
 
-		Signal() {
+		inline Signal() {
 			id_ = 0;
 		}
 
 		~Signal() {
-			for (Pair& pair : functions_) {
-				pair.connectionInfo_->signal_ = nullptr;
-			}
+			clear();
 		}
 
 		signals::Connection connect(Callback callback) {
@@ -31,10 +29,20 @@ namespace mw {
 			return signals::Connection(c);
 		}
 
-		void operator()(A... a) {
+		inline void operator()(A... a) {
 			for (Pair& pair : functions_) {
 				pair.callback_(a...);
 			}
+		}
+
+		inline void clear() {
+			for (Pair& pair : functions_) {
+				pair.connectionInfo_->signal_ = nullptr;
+			}
+		}
+
+		inline int size() const {
+			functions_.size();
 		}
 
 	private:
