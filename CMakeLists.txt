@@ -17,6 +17,11 @@ set(SOURCES_EXTRA_TEST
 # End of source files.
 
 add_library(Signal ${SOURCES_EXTRA})
-include_directories(src)
-add_executable(SignalTest ${SOURCES_EXTRA_TEST})
-target_link_libraries(SignalTest Signal)
+
+option(SignalTest "SignalTest project is added" OFF)
+
+if (SignalTest)
+	include_directories(src)
+	add_executable(SignalTest ${SOURCES_EXTRA_TEST})
+	target_link_libraries(SignalTest Signal)
+endif (SignalTest)
