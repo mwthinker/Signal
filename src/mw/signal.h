@@ -23,12 +23,12 @@ namespace mw {
 			clear();
 		}
 
-		signals::Connection connect(Callback callback) {
+		signals::Connection connect(const Callback& callback) {
 			ConnectionInfoPtr c = std::make_shared<signals::ConnectionInfo>(++id_, this);
 			functions_.push_back(Pair(callback, c));
 			return signals::Connection(c);
 		}
-
+		
 		inline void operator()(A... a) {
 			for (Pair& pair : functions_) {
 				pair.callback_(a...);
