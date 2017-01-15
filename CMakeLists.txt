@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(Signal)
 if (NOT MSVC)
-	set(CMAKE_CXX_FLAGS "-std=c++11")
+	set(CMAKE_CXX_FLAGS "-std=c++1y")
 endif ()
 
 # Source files.
