@@ -5,23 +5,22 @@ if (NOT MSVC)
 endif ()
 
 # Source files.
-set(SOURCES_EXTRA
+set(SOURCES
 	src/mw/signal.h
-	src/mw/signals/connection.cpp
-	src/mw/signals/connection.h
 )
 
-set(SOURCES_EXTRA_TEST
+set(SOURCES_TEST
 	srcTest/main.cpp
 )
 # End of source files.
 
-add_library(Signal ${SOURCES_EXTRA})
+add_library(Signal INTERFACE)
+
+target_include_directories(Signal INTERFACE ${SOURCES})
 
 option(SignalTest "SignalTest project is added" OFF)
 
 if (SignalTest)
-	include_directories(src)
-	add_executable(SignalTest ${SOURCES_EXTRA_TEST})
+	add_executable(SignalTest ${SOURCES} ${SOURCES_TEST})
 	target_link_libraries(SignalTest Signal)
 endif (SignalTest)

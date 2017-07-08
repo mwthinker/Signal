@@ -18,7 +18,6 @@ void testMustBe5(int a) {
 }
 
 void test(int a) {
-
 }
 
 int id = 0;
