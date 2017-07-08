@@ -4,12 +4,12 @@
 #include "signals/connection.h"
 
 #include <functional>
-#include <list>
+#include <vector>
 #include <memory>
 
 namespace mw {
 
-	// Is a class that holds functions. A slot/callbacks class.
+	// A function container, in which the functions stored can be called. A slot/callbacks class.
 	template <class... A>
 	class Signal : public signals::SignalInterface {
 	public:
@@ -30,13 +30,15 @@ namespace mw {
 		using ConnectionInfoPtr = std::shared_ptr<signals::ConnectionInfo>;
 
 		void disconnect(int id) override {
-			functions_.remove_if([&](Pair& pair) {
+			// Remove id from vector.
+			for (auto& pair : functions_) {
 				if (pair.connectionInfo_->id_ == id) {
 					pair.connectionInfo_->signal_ = nullptr;
-					return true;
+					std::swap(pair, functions_.back());
+					functions_.pop_back();
+					break;
 				}
-				return false;
-			});
+			}
 		}
 
 		struct Pair {
@@ -48,7 +50,7 @@ namespace mw {
 		};
 
 		int id_; // The id mapped to the last added function.
-		std::list<Pair> functions_; // All mapped callbacks.
+		std::vector<Pair> functions_; // All mapped callbacks.
 	};
 	
 	template <class... A>
