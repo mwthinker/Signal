@@ -17,11 +17,7 @@ namespace mw {
 		protected:
 			friend class Connection;
 
-			inline SignalInterface() {
-			}
-
-			inline ~SignalInterface() {
-			}
+			SignalInterface() = default;
 
 		private:
 			SignalInterface(const SignalInterface&) = delete;
@@ -32,7 +28,7 @@ namespace mw {
 
 		// Used internally in mw::Signal to remember a connection made.
 		struct ConnectionInfo {
-			inline ConnectionInfo(int id, SignalInterface* signal) : signal_(signal), id_(id) {
+			ConnectionInfo(int id, SignalInterface* signal) : signal_(signal), id_(id) {
 			}
 
 			SignalInterface* signal_;
@@ -46,8 +42,7 @@ namespace mw {
 			template<class... A> friend class mw::Signal;
 
 			// Creates a empty connection. By default the connection is not active.
-			inline Connection() {
-			}
+			Connection() = default;
 
 			// Disconnect the active connection. The callback associated to this connection
 			// will disconnect from the corresponding slot.
@@ -57,7 +52,7 @@ namespace mw {
 			bool connected() const;
 
 		private:
-			typedef std::shared_ptr<signals::ConnectionInfo> ConnectionInfoPtr;
+			using ConnectionInfoPtr = std::shared_ptr<signals::ConnectionInfo>;
 
 			// Is called from mw::Signal to bind a connection.
 			Connection(const ConnectionInfoPtr& c);
