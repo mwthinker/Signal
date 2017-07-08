@@ -49,10 +49,21 @@ int main(int argc, char** argv) {
 	{
 		mw::Signal<int> signal;
 		mw::signals::Connection c1 = signal.connect(std::bind(testMustBe5, std::placeholders::_1));
+		
+		// Test size.
+		assert(signal.size() == 1);
+		
 		mw::signals::Connection c2 = signal.connect(std::bind(shouldNotBeCalled, 1));
+		// Test size.
+		assert(signal.size() == 2);
+
 		// Should be connected.
 		assert(c2.connected());
 		c2.disconnect();
+
+		// Test size.
+		assert(signal.size() == 1);
+
 		// Should be disconnected now.
 		assert(!c2.connected());
 
@@ -65,6 +76,10 @@ int main(int argc, char** argv) {
 		// Should be connected.
 		assert(c1.connected());
 		c1.disconnect();
+
+		// Test size.
+		assert(signal.size() == 0);
+
 		// Should be disconnected now.
 		assert(!c1.connected());
 
@@ -75,15 +90,16 @@ int main(int argc, char** argv) {
 	// Should be disconnected now.
 	assert(!connection.connected());
 
-	{ // Test call signal and this fom inside a destructor.
+	{ // Test call signal and this from inside a destructor.
 		for (int i = 0; i < 999; ++i) {
 			Test* t = new Test();
+			assert(t->signal_.size() == 0);
 			t->signal_.connect(std::bind(testTest, std::placeholders::_1));
+			assert(t->signal_.size() == 1);
 			delete t;
 		}
 	}
 
 	std::cout << "\nTest succeeded!\n";
-	
 	return 0;
 }

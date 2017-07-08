@@ -13,40 +13,21 @@ namespace mw {
 	template <class... A>
 	class Signal : public signals::SignalInterface {
 	public:
-		typedef std::function<void(A...)> Callback;
+		using Callback = std::function<void(A...)>;
 
-		inline Signal() {
-			id_ = 0;
-		}
+		Signal();
+		~Signal();
 
-		~Signal() {
-			clear();
-		}
-
-		signals::Connection connect(const Callback& callback) {
-			ConnectionInfoPtr c = std::make_shared<signals::ConnectionInfo>(++id_, this);
-			functions_.push_back(Pair(callback, c));
-			return signals::Connection(c);
-		}
+		signals::Connection connect(const Callback& callback);
 		
-		inline void operator()(A... a) {
-			for (Pair& pair : functions_) {
-				pair.callback_(a...);
-			}
-		}
+		void operator()(A... a);
 
-		inline void clear() {
-			for (Pair& pair : functions_) {
-				pair.connectionInfo_->signal_ = nullptr;
-			}
-		}
+		void clear();
 
-		inline int size() const {
-			functions_.size();
-		}
+		int size() const;
 
 	private:
-		typedef std::shared_ptr<signals::ConnectionInfo> ConnectionInfoPtr;
+		using ConnectionInfoPtr = std::shared_ptr<signals::ConnectionInfo>;
 
 		void disconnect(int id) override {
 			functions_.remove_if([&](Pair& pair) {
@@ -66,9 +47,45 @@ namespace mw {
 			Callback callback_;
 		};
 
-		int id_; // The id mapped to last added function.
+		int id_; // The id mapped to the last added function.
 		std::list<Pair> functions_; // All mapped callbacks.
 	};
+	
+	template <class... A>
+	Signal<A...>::Signal() {
+		id_ = 0;
+	}
+	
+	template <class... A>
+	Signal<A...>::Signal::~Signal() {
+		clear();
+	}
+
+	template <class... A>
+	signals::Connection Signal<A...>::connect(const Callback& callback) {
+		ConnectionInfoPtr c = std::make_shared<signals::ConnectionInfo>(++id_, this);
+		functions_.push_back(Pair(callback, c));
+		return signals::Connection(c);
+	}
+
+	template <class... A>
+	void Signal<A...>::operator()(A... a) {
+		for (Pair& pair : functions_) {
+			pair.callback_(a...);
+		}
+	}
+
+	template <class... A>
+	void Signal<A...>::clear() {
+		for (Pair& pair : functions_) {
+			pair.connectionInfo_->signal_ = nullptr;
+		}
+	}
+	
+	template <class... A>	
+	int Signal<A...>::size() const {
+		return functions_.size();
+	}
 
 } // Namespace mw.
 
