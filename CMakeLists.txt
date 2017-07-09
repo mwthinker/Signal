@@ -21,6 +21,7 @@ target_include_directories(Signal INTERFACE ${SOURCES})
 option(SignalTest "SignalTest project is added" OFF)
 
 if (SignalTest)
-	add_executable(SignalTest ${SOURCES} ${SOURCES_TEST})
+	include_directories(src/)
+	add_executable(SignalTest ${SOURCES_TEST} ${SOURCES})
 	target_link_libraries(SignalTest Signal)
 endif (SignalTest)

@@ -47,11 +47,11 @@ namespace mw {
 			template<class... A> friend class Signal;
 
 			struct ConnectionInfo {
-				ConnectionInfo(int id, SignalInterface* signal) : signal_(signal), id_(id) {
+				ConnectionInfo(size_t id, SignalInterface* signal) : signal_(signal), id_(id) {
 				}
 
 				SignalInterface* signal_;
-				const int id_;
+				const size_t id_;
 			};
 
 			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
@@ -80,7 +80,9 @@ namespace mw {
 
 		void clear();
 
-		int size() const;
+		size_t size() const;
+
+		bool empty() const;
 
 	private:
 		using ConnectionInfoPtr = std::shared_ptr<signals::Connection::ConnectionInfo>;
@@ -95,7 +97,7 @@ namespace mw {
 			Callback callback_;
 		};
 
-		int id_; // The id mapped to the last added function.
+		size_t id_; // The id mapped to the last added function.
 		std::vector<Pair> functions_; // All mapped callbacks.
 	};
 
@@ -143,8 +145,13 @@ namespace mw {
 	}
 	
 	template <class... A>
-	int Signal<A...>::size() const {
+	size_t Signal<A...>::size() const {
 		return functions_.size();
+	}
+
+	template <class... A>
+	bool Signal<A...>::empty() const {
+		return functions_.empty();
 	}
 
 	template <class... A>

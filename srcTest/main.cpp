@@ -47,14 +47,14 @@ int main(int argc, char** argv) {
 	mw::signals::Connection connection;
 	{
 		mw::Signal<int> signal;
+		assert(signal.empty());
 		mw::signals::Connection c1 = signal.connect(std::bind(testMustBe5, std::placeholders::_1));
-		
-		// Test size.
 		assert(signal.size() == 1);
 		
 		mw::signals::Connection c2 = signal.connect(std::bind(shouldNotBeCalled, 1));
 		// Test size.
 		assert(signal.size() == 2);
+		assert(!signal.empty());
 
 		// Should be connected.
 		assert(c2.connected());
@@ -78,6 +78,7 @@ int main(int argc, char** argv) {
 
 		// Test size.
 		assert(signal.size() == 0);
+		assert(signal.empty());
 
 		// Should be disconnected now.
 		assert(!c1.connected());
@@ -99,6 +100,6 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	std::cout << "\nTest succeeded!\n";
+	std::cout << "Test succeeded!\n";
 	return 0;
 }
