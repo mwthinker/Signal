@@ -20,7 +20,7 @@ namespace mw {
 			friend class Connection;
 
 			SignalInterface() = default;
-			~SignalInterface() = default;
+			~SignalInterface() = default; // Not virtual. Should not be deleted.
 
 		private:
 			SignalInterface(const SignalInterface&) = delete;
@@ -34,7 +34,7 @@ namespace mw {
 		class Connection {
 		public:
 			// Creates a empty connection. By default the connection is not active.
-			Connection() = default;
+			Connection() = default; // Another constructor exists.
 
 			// Disconnect the active connection. The callback associated to this connection
 			// will disconnect from the corresponding slot.
@@ -44,8 +44,6 @@ namespace mw {
 			bool connected() const;
 
 		private:
-			template<class... A> friend class Signal;
-
 			struct ConnectionInfo {
 				ConnectionInfo(size_t id, SignalInterface* signal) : signal_(signal), id_(id) {
 				}
@@ -54,12 +52,14 @@ namespace mw {
 				const size_t id_;
 			};
 
+		public: // Makes it visible by Signal.
 			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
 
 			// Is called from mw::Signal to bind a connection.
 			Connection(const ConnectionInfoPtr& c) : connectionInfo_(c) {
 			}
-
+		
+		private:
 			ConnectionInfoPtr connectionInfo_;
 		};
 
