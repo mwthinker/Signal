@@ -7,9 +7,6 @@
 
 namespace mw {
 
-	template <class... A>
-	class Signal;
-
 	namespace signals {
 
 		class Connection;
@@ -43,7 +40,7 @@ namespace mw {
 			// Returns true if the connection is still active else false.
 			bool connected() const;
 
-		private:
+			// Is only used by the mw::Signal class.
 			struct ConnectionInfo {
 				ConnectionInfo(size_t id, SignalInterface* signal) : signal_(signal), id_(id) {
 				}
@@ -52,7 +49,6 @@ namespace mw {
 				const size_t id_;
 			};
 
-		public: // Makes it visible by Signal.
 			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
 
 			// Is called from mw::Signal to bind a connection.
