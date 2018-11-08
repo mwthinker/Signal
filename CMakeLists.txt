@@ -1,28 +1,42 @@
-cmake_minimum_required(VERSION 3.0)
-project(Signal)
-if (NOT MSVC)
-	set(CMAKE_CXX_FLAGS "-std=c++1y")
-endif ()
-
-# Source files.
-set(SOURCES
-	src/mw/signal.h
+cmake_minimum_required(VERSION 3.1...3.12)
+project(Signal
+	DESCRIPTION
+		"A simple Signals and Slots library"
+	LANGUAGES
+		CXX
+)
+set(CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/
 )
 
-set(SOURCES_TEST
-	src/mw/signal.h
-	srcTest/main.cpp
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/include/mw/signal.h
 )
-# End of source files.
 
 add_library(Signal INTERFACE)
 
-target_include_directories(Signal INTERFACE ${SOURCES})
+target_include_directories(Signal
+	INTERFACE
+		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+)
 
 option(SignalTest "SignalTest project is added" OFF)
 
 if (SignalTest)
-	include_directories(src/)
-	add_executable(SignalTest ${SOURCES_TEST})
-	target_link_libraries(SignalTest)
+	set(SOURCES_TEST
+		srcTest/main.cpp
+	)
+	
+	add_executable(SignalTest ${HEADERS} ${SOURCES_TEST})
+
+	target_include_directories(SignalTest
+		PRIVATE
+			${CMAKE_CURRENT_SOURCE_DIR}/srcTest
+	)
+	
+	target_link_libraries(SignalTest PRIVATE Signal)
 endif (SignalTest)
