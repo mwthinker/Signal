@@ -1,9 +1,8 @@
 #ifndef MW_SIGNAL_H
 #define MW_SIGNAL_H
 
-#include <functional>
 #include <vector>
-#include <memory>
+#include <functional>
 
 namespace mw {
 
@@ -70,6 +69,12 @@ namespace mw {
 		Signal();
 		~Signal();
 
+		Signal(const Signal&) = delete;
+		Signal& operator=(const Signal&) = delete;
+
+		Signal(Signal&&);
+		Signal& operator=(Signal&&);
+
 		signals::Connection connect(const Callback& callback);
 		
 		void operator()(A... a);
@@ -93,8 +98,8 @@ namespace mw {
 			Callback callback_;
 		};
 
-		size_t id_; // The id mapped to the last added function.
 		std::vector<Pair> functions_; // All mapped callbacks.
+		size_t id_; // The id mapped to the last added function.
 	};
 
 	// ------------ Definitions ------------
@@ -117,6 +122,19 @@ namespace mw {
 	template <class... A>
 	Signal<A...>::Signal::~Signal() {
 		clear();
+	}
+
+	template <class... A>
+	Signal<A...>::Signal(Signal<A...>&& signal) : functions_(std::move(signal.functions_)), id_(signal.id_) {
+		signal.id_ = 0;
+	}
+	
+	template <class... A>
+	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) {
+		functions_ = std::move(signal.functions_);
+		id_ = signal.id_;
+		signal.id_ = 0;
+		return *this;
 	}
 
 	template <class... A>
