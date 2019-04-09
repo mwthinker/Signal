@@ -1,45 +1,48 @@
-#ifndef MW_SIGNAL_H
-#define MW_SIGNAL_H
+#ifndef SIGNAL_MW_SIGNAL_H
+#define SIGNAL_MW_SIGNAL_H
 
 #include <vector>
 #include <functional>
 
 namespace mw {
 
+	template <class...>
+	class Signal;
+
 	namespace signals {
 
-		class Connection;
-
-		// Is used by mw::signal. Is not to be used elsewhere.
-		class SignalInterface {
-		protected:
-			friend class Connection;
-
-			SignalInterface() = default;
-			~SignalInterface() = default; // Not virtual. Should not be deleted.
-
-		private:
-			SignalInterface(const SignalInterface&) = delete;
-			SignalInterface& operator=(const SignalInterface& SignalInterface) = delete;
-
-			virtual void disconnect(int id) = 0;
-		};
-
-		// A connection Object remembers a connection and gives infomation
-		// if the connection is active or not.		
+		// A connection Object remembers a connection. Automatically disconnects when
+		// all copies goes out of scope.	
 		class Connection {
 		public:
-			// Creates a empty connection. By default the connection is not active.
-			Connection() = default; // Another constructor exists.
+			template <typename...> friend class ::mw::Signal;
 
-			// Disconnect the active connection. The callback associated to this connection
-			// will disconnect from the corresponding slot.
+			Connection() = default;
+			Connection(const Connection& Connection) = default;
+			Connection(Connection&& Connection) noexcept = default;
+
+			Connection& operator=(const Connection& Connection) = default;
+			Connection& operator=(Connection&& Connection) noexcept = default;
+			
 			void disconnect();
 
-			// Returns true if the connection is still active else false.
 			bool connected() const;
 
-			// Is only used by the mw::Signal class.
+		private:
+			class SignalInterface {
+			protected:
+				friend class Connection;
+
+				SignalInterface() = default;
+				~SignalInterface() = default; // Not virtual. Should not be deleted.
+
+			private:
+				SignalInterface(const SignalInterface&) = delete;
+				SignalInterface& operator=(const SignalInterface& SignalInterface) = delete;
+
+				virtual void disconnect(int id) = 0;
+			};
+
 			struct ConnectionInfo {
 				ConnectionInfo(size_t id, SignalInterface* signal) : signal_(signal), id_(id) {
 				}
@@ -49,12 +52,11 @@ namespace mw {
 			};
 
 			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
-
+		
 			// Is called from mw::Signal to bind a connection.
 			Connection(const ConnectionInfoPtr& c) : connectionInfo_(c) {
 			}
-		
-		private:
+
 			ConnectionInfoPtr connectionInfo_;
 		};
 
@@ -62,7 +64,7 @@ namespace mw {
 
 	// A function container, in which the functions stored can be called. A slot/callbacks class.
 	template <class... A>
-	class Signal : public signals::SignalInterface {
+	class Signal : public signals::Connection::SignalInterface {
 	public:
 		using Callback = std::function<void(A...)>;
 
@@ -72,8 +74,8 @@ namespace mw {
 		Signal(const Signal&) = delete;
 		Signal& operator=(const Signal&) = delete;
 
-		Signal(Signal&&);
-		Signal& operator=(Signal&&);
+		Signal(Signal&&) noexcept;
+		Signal& operator=(Signal&&) noexcept;
 
 		signals::Connection connect(const Callback& callback);
 		
@@ -81,17 +83,18 @@ namespace mw {
 
 		void clear();
 
-		size_t size() const;
+		size_t size() const noexcept;
 
-		bool empty() const;
+		bool empty() const noexcept;
 
 	private:
-		using ConnectionInfoPtr = std::shared_ptr<signals::Connection::ConnectionInfo>;
+		using ConnectionInfoPtr = signals::Connection::ConnectionInfoPtr;
 
 		void disconnect(int id) override;
 
 		struct Pair {
-			Pair(const Callback& callback, const ConnectionInfoPtr& connectionInfo) : callback_(callback), connectionInfo_(connectionInfo) {
+			Pair(const Callback& callback, const ConnectionInfoPtr& connectionInfo)
+				: callback_(callback), connectionInfo_(connectionInfo) {
 			}
 
 			ConnectionInfoPtr connectionInfo_;
@@ -115,8 +118,7 @@ namespace mw {
 	}
 	
 	template <class... A>
-	Signal<A...>::Signal() {
-		id_ = 0;
+	Signal<A...>::Signal() : id_(0) {
 	}
 	
 	template <class... A>
@@ -125,12 +127,12 @@ namespace mw {
 	}
 
 	template <class... A>
-	Signal<A...>::Signal(Signal<A...>&& signal) : functions_(std::move(signal.functions_)), id_(signal.id_) {
+	Signal<A...>::Signal(Signal<A...>&& signal) noexcept : functions_(std::move(signal.functions_)), id_(signal.id_) {
 		signal.id_ = 0;
 	}
 	
 	template <class... A>
-	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) {
+	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) noexcept {
 		functions_ = std::move(signal.functions_);
 		id_ = signal.id_;
 		signal.id_ = 0;
@@ -139,8 +141,8 @@ namespace mw {
 
 	template <class... A>
 	signals::Connection Signal<A...>::connect(const Callback& callback) {
-		ConnectionInfoPtr c = std::make_shared<signals::Connection::ConnectionInfo>(++id_, this);
-		functions_.push_back(Pair(callback, c));
+		auto c = std::make_shared<signals::Connection::ConnectionInfo>(++id_, this);
+		functions_.emplace_back(callback, c);
 		return signals::Connection(c);
 	}
 
@@ -159,12 +161,12 @@ namespace mw {
 	}
 	
 	template <class... A>
-	size_t Signal<A...>::size() const {
+	size_t Signal<A...>::size() const noexcept {
 		return functions_.size();
 	}
 
 	template <class... A>
-	bool Signal<A...>::empty() const {
+	bool Signal<A...>::empty() const noexcept{
 		return functions_.empty();
 	}
 
@@ -183,4 +185,4 @@ namespace mw {
 
 } // Namespace mw.
 
-#endif // MW_SIGNAL_H
+#endif // SIGNAL_MW_SIGNAL_H
