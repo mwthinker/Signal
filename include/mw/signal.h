@@ -2,6 +2,7 @@
 #define SIGNAL_MW_SIGNAL_H
 
 #include <vector>
+#include <memory>
 #include <functional>
 
 namespace mw {

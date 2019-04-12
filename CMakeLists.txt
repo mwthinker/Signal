@@ -31,7 +31,7 @@ target_include_directories(Signal
 
 find_package(Catch2 CONFIG)
 if (Catch2_FOUND)
-	message(STATUS "SignalTest is available to add")
+	message(STATUS "SignalTest is available to add: -DSignalTest=1")
 	option(SignalTest "SignalTest project is added" OFF)
 	if (SignalTest)
 		set(SOURCES_TEST
