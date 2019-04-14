@@ -41,7 +41,7 @@ namespace mw {
 				SignalInterface(const SignalInterface&) = delete;
 				SignalInterface& operator=(const SignalInterface& SignalInterface) = delete;
 
-				virtual void disconnect(int id) = 0;
+				virtual void disconnect(size_t id) = 0;
 			};
 
 			struct ConnectionInfo {
@@ -91,7 +91,7 @@ namespace mw {
 	private:
 		using ConnectionInfoPtr = signals::Connection::ConnectionInfoPtr;
 
-		void disconnect(int id) override;
+		void disconnect(size_t id) override;
 
 		struct Pair {
 			Pair(const Callback& callback, const ConnectionInfoPtr& connectionInfo)
@@ -172,7 +172,7 @@ namespace mw {
 	}
 
 	template <class... A>
-	void Signal<A...>::disconnect(int id) {
+	void Signal<A...>::disconnect(size_t id) {
 		// Remove id from vector.
 		for (auto& pair : functions_) {
 			if (pair.connectionInfo_->id_ == id) {
