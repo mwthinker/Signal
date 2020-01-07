@@ -13,7 +13,7 @@ namespace mw {
 	namespace signals {
 
 		// A connection Object remembers a connection. Automatically disconnects when
-		// all copies goes out of scope.	
+		// all copies goes out of scope.
 		class Connection {
 		public:
 			template <typename...> friend class ::mw::Signal;
@@ -45,7 +45,9 @@ namespace mw {
 			};
 
 			struct ConnectionInfo {
-				ConnectionInfo(size_t id, SignalInterface* signal) : signal_(signal), id_(id) {
+				ConnectionInfo(size_t id, SignalInterface* signal)
+					: signal_{signal}
+					, id_{id} {
 				}
 
 				SignalInterface* signal_;
@@ -55,7 +57,8 @@ namespace mw {
 			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
 		
 			// Is called from mw::Signal to bind a connection.
-			Connection(const ConnectionInfoPtr& c) : connectionInfo_(c) {
+			Connection(const ConnectionInfoPtr& c)
+				: connectionInfo_{c} {
 			}
 
 			ConnectionInfoPtr connectionInfo_;
@@ -69,7 +72,7 @@ namespace mw {
 	public:
 		using Callback = std::function<void(A...)>;
 
-		Signal();
+		Signal() = default;
 		~Signal();
 
 		Signal(const Signal&) = delete;
@@ -95,7 +98,8 @@ namespace mw {
 
 		struct Pair {
 			Pair(const Callback& callback, const ConnectionInfoPtr& connectionInfo)
-				: callback_(callback), connectionInfo_(connectionInfo) {
+				: callback_{callback}
+				, connectionInfo_{connectionInfo} {
 			}
 
 			ConnectionInfoPtr connectionInfo_;
@@ -103,7 +107,7 @@ namespace mw {
 		};
 
 		std::vector<Pair> functions_; // All mapped callbacks.
-		size_t id_; // The id mapped to the last added function.
+		size_t id_{}; // The id mapped to the last added function.
 	};
 
 	// ------------ Definitions ------------
@@ -119,24 +123,20 @@ namespace mw {
 	}
 	
 	template <class... A>
-	Signal<A...>::Signal() : id_(0) {
-	}
-	
-	template <class... A>
 	Signal<A...>::Signal::~Signal() {
 		clear();
 	}
 
 	template <class... A>
-	Signal<A...>::Signal(Signal<A...>&& signal) noexcept : functions_(std::move(signal.functions_)), id_(signal.id_) {
-		signal.id_ = 0;
+	Signal<A...>::Signal(Signal<A...>&& signal) noexcept
+		: functions_{std::move(signal.functions_)}
+		, id_{std::exchange(signal.id_, 0)} {
 	}
 	
 	template <class... A>
 	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) noexcept {
 		functions_ = std::move(signal.functions_);
-		id_ = signal.id_;
-		signal.id_ = 0;
+		id_ = std::exchange(signal.id_, 0);
 		return *this;
 	}
 
