@@ -6,8 +6,8 @@
 SCENARIO("using signal", "[signal]") {
 	GIVEN("a Signal with no connections") {
 		mw::Signal<int> signal;
-		REQUIRE( signal.empty() == true );
-		REQUIRE( signal.size() == 0 );
+		REQUIRE(signal.empty() == true);
+		REQUIRE(signal.size() == 0);
 		
 		WHEN("connection is added") {
 			mw::signals::Connection c1 = signal.connect([](int) {});
@@ -16,7 +16,7 @@ SCENARIO("using signal", "[signal]") {
 				REQUIRE(signal.size() == 1);
 			}
 			THEN("signal is not empty") {
-				REQUIRE( signal.empty() == false );
+				REQUIRE(signal.empty() == false);
 			}
 		}
 
@@ -79,7 +79,14 @@ SCENARIO("using signal", "[signal]") {
 			}
 
 			THEN("function should be called multiple times") {
-				REQUIRE( nbr == 4 * 3 );
+				REQUIRE(nbr == 4 * 3);
+			}
+		}
+
+		WHEN("calling clear") {
+			signal.clear();
+			THEN("all added functions should been removed") {
+				REQUIRE(signal.size() == 0);
 			}
 		}
 	}

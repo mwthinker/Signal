@@ -44,24 +44,24 @@ namespace mw {
 				virtual void disconnect(size_t id) = 0;
 			};
 
-			struct ConnectionInfo {
-				ConnectionInfo(size_t id, SignalInterface* signal)
-					: signal_{signal}
-					, id_{id} {
+			struct Info {
+				Info(size_t idValue, SignalInterface* signalPointer)
+					: signal{signalPointer}
+					, id{idValue} {
 				}
 
-				SignalInterface* signal_;
-				const size_t id_;
+				SignalInterface* signal;
+				const size_t id;
 			};
 
-			using ConnectionInfoPtr = std::shared_ptr<ConnectionInfo>;
+			using InfoPtr = std::shared_ptr<Info>;
 		
 			// Is called from mw::Signal to bind a connection.
-			Connection(const ConnectionInfoPtr& c)
-				: connectionInfo_{c} {
+			Connection(const InfoPtr& c)
+				: info_{c} {
 			}
 
-			ConnectionInfoPtr connectionInfo_;
+			InfoPtr info_;
 		};
 
 	}
@@ -83,7 +83,8 @@ namespace mw {
 
 		signals::Connection connect(const Callback& callback);
 		
-		void operator()(A... a);
+		template <class... Params>
+		void operator()(Params&&... params);
 
 		void clear();
 
@@ -92,18 +93,13 @@ namespace mw {
 		bool empty() const noexcept;
 
 	private:
-		using ConnectionInfoPtr = signals::Connection::ConnectionInfoPtr;
+		using InfoPtr = signals::Connection::InfoPtr;
 
 		void disconnect(size_t id) override;
 
 		struct Pair {
-			Pair(const Callback& callback, const ConnectionInfoPtr& connectionInfo)
-				: callback_{callback}
-				, connectionInfo_{connectionInfo} {
-			}
-
-			ConnectionInfoPtr connectionInfo_;
-			Callback callback_;
+			InfoPtr info;
+			Callback callback;
 		};
 
 		std::vector<Pair> functions_; // All mapped callbacks.
@@ -113,13 +109,13 @@ namespace mw {
 	// ------------ Definitions ------------
 
 	inline void signals::Connection::disconnect() {
-		if (connectionInfo_ && connectionInfo_->signal_ != nullptr) {
-			connectionInfo_->signal_->disconnect(connectionInfo_->id_);
+		if (info_ && info_->signal != nullptr) {
+			info_->signal->disconnect(info_->id);
 		}
 	}
 	
 	inline bool signals::Connection::connected() const {
-		return connectionInfo_ && connectionInfo_->signal_ != nullptr;
+		return info_ && info_->signal != nullptr;
 	}
 	
 	template <class... A>
@@ -142,23 +138,25 @@ namespace mw {
 
 	template <class... A>
 	signals::Connection Signal<A...>::connect(const Callback& callback) {
-		auto c = std::make_shared<signals::Connection::ConnectionInfo>(++id_, this);
-		functions_.emplace_back(callback, c);
+		auto c = std::make_shared<signals::Connection::Info>(++id_, this);
+		functions_.push_back({c, callback});
 		return signals::Connection(c);
 	}
 
 	template <class... A>
-	void Signal<A...>::operator()(A... a) {
-		for (Pair& pair : functions_) {
-			pair.callback_(a...);
+	template <class... Params>
+	void Signal<A...>::operator()(Params&&... a) {
+		for (auto& [info, callback]: functions_) {
+			callback(std::forward<Params>(a)...);
 		}
 	}
 
 	template <class... A>
 	void Signal<A...>::clear() {
-		for (Pair& pair : functions_) {
-			pair.connectionInfo_->signal_ = nullptr;
+		for (auto& [info, callback] : functions_) {
+			info->signal = nullptr;
 		}
+		functions_.clear();
 	}
 	
 	template <class... A>
@@ -175,8 +173,8 @@ namespace mw {
 	void Signal<A...>::disconnect(size_t id) {
 		// Remove id from vector.
 		for (auto& pair : functions_) {
-			if (pair.connectionInfo_->id_ == id) {
-				pair.connectionInfo_->signal_ = nullptr;
+			if (pair.info->id == id) {
+				pair.info->signal = nullptr;
 				std::swap(pair, functions_.back());
 				functions_.pop_back();
 				break;
