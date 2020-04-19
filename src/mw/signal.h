@@ -19,11 +19,11 @@ namespace mw {
 			template <typename...> friend class ::mw::Signal;
 
 			Connection() = default;
-			Connection(const Connection& Connection) = default;
-			Connection(Connection&& Connection) noexcept = default;
+			Connection(const Connection&) = default;
+			Connection(Connection&&) noexcept = default;
 
-			Connection& operator=(const Connection& Connection) = default;
-			Connection& operator=(Connection&& Connection) noexcept = default;
+			Connection& operator=(const Connection&) = default;
+			Connection& operator=(Connection&&) noexcept = default;
 			
 			void disconnect();
 
@@ -39,7 +39,7 @@ namespace mw {
 
 			private:
 				SignalInterface(const SignalInterface&) = delete;
-				SignalInterface& operator=(const SignalInterface& SignalInterface) = delete;
+				SignalInterface& operator=(const SignalInterface&) = delete;
 
 				virtual void disconnect(size_t id) = 0;
 			};
@@ -62,6 +62,38 @@ namespace mw {
 			}
 
 			InfoPtr info_;
+		};
+
+		class ScopedConnection {
+		public:
+			ScopedConnection() = default;
+			ScopedConnection(const Connection& connection) 
+				: connection_{connection}  {
+			}
+			~ScopedConnection() {
+				connection_.disconnect();
+			}
+
+			ScopedConnection(const ScopedConnection&) = default;
+			ScopedConnection(ScopedConnection&&) noexcept = default;
+
+			ScopedConnection& operator=(const ScopedConnection&) = default;
+			ScopedConnection& operator=(ScopedConnection&&) noexcept = default;
+
+			void disconnect() {
+				connection_.disconnect();
+			}
+
+			bool connected() const {
+				return connection_.connected();
+			}
+
+			void release() {
+				connection_ = {};
+			}
+
+		private:
+			Connection connection_;
 		};
 
 	}

@@ -63,6 +63,54 @@ SCENARIO("using signal", "[signal]") {
 		}
 	}
 
+	GIVEN("a Signal with scoped connections") {
+		mw::Signal<int> signal;
+
+		bool invokedC1 = false;
+		mw::signals::ScopedConnection c1 = signal.connect([&](int) { invokedC1 = true; });
+		
+		auto c2 = signal.connect([&](int) {});
+
+		WHEN("disconnecting one connection") {
+			c1.disconnect();
+
+			THEN("connection size is decreased") {
+				REQUIRE(signal.size() == 1);
+			}
+			THEN("signal is not empty") {
+				REQUIRE(signal.empty() == false);
+			}
+			THEN("one connection should be connected") {
+				REQUIRE(!c1.connected());
+			}
+			THEN("one connection should be disconnected") {
+				REQUIRE(c2.connected());
+			}
+		}
+
+		WHEN("release a scoped connection, disconnects and invoke callbacks") {
+			c1.release();
+			c1.disconnect();
+
+			signal(1);
+
+			THEN("callback should been invoked") {
+				REQUIRE(invokedC1);
+			}
+		}
+
+		WHEN("scoped connection getting out of scope, disconnects and invoke callbacks") {
+			c1 = {};
+			c1.disconnect();
+
+			signal(1);
+
+			THEN("callback should been invoked") {
+				REQUIRE(invokedC1);
+			}
+		}
+	}
+
 	GIVEN("a Signal with added functions") {
 		mw::Signal signal;
 		int nbr = 0;
