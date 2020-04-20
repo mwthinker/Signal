@@ -179,7 +179,7 @@ namespace mw {
 	template <class... Params>
 	void Signal<A...>::operator()(Params&&... a) {
 		for (auto& [info, callback]: functions_) {
-			callback(std::forward<Params>(a)...);
+			callback(a...);
 		}
 	}
 
