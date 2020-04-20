@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1...3.14)
+cmake_minimum_required(VERSION 3.1...3.17)
 project(Signal_Test
 	DESCRIPTION
 		"Test the project Signal using Catch2"
@@ -6,11 +6,9 @@ project(Signal_Test
 		CXX
 )
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 find_package(Catch2 CONFIG)
 if (Catch2_FOUND)
+
 	add_executable(Signal_Test
 		src/main.cpp
 		${SIGNAL_HEADERS}
@@ -21,6 +19,21 @@ if (Catch2_FOUND)
 			Signal
 			Catch2::Catch2
 	)
+
+	if (MSVC)
+		target_compile_options(Signal_Test
+			PRIVATE
+				"/permissive-"
+		)
+	endif (MSVC)
+
+	set_target_properties(Signal_Test
+		PROPERTIES
+			CXX_STANDARD 17
+			CXX_STANDARD_REQUIRED YES
+			CXX_EXTENSIONS NO
+	)
+
 else (Catch2_FOUND)
 	message(STATUS "Catch2 not found, Signal_Test not created")
 endif (Catch2_FOUND)

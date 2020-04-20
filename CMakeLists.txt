@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.1...3.14)
 
 set(VCPKG_ROOT $ENV{VCPKG_ROOT})
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 		CACHE STRING ""
 	)
 	message(STATUS "Use VCPKG CMAKE_TOOLCHAIN_FILE")
-endif()
+endif ()
 
 project(Signal
 	DESCRIPTION
@@ -14,9 +14,6 @@ project(Signal
 	LANGUAGES
 		CXX
 )
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SIGNAL_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/mw/signal.h
@@ -29,7 +26,8 @@ target_include_directories(Signal
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
 )
 
-#add_custom_target(${PROJECT_NAME}_ SOURCES ${PROJECT_SOURCES})
+target_compile_features(Signal INTERFACE cxx_std_17)
+
 message(STATUS "Signal_Test is available to add: -DSignal_Test=1")
 option(Signal_Test "Signal_Test project is added" OFF)
 if (Signal_Test)

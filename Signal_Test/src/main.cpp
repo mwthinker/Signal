@@ -3,6 +3,10 @@
 
 #include <mw/signal.h>
 
+struct A {
+	int nbr{7};
+};
+
 SCENARIO("using signal", "[signal]") {
 	GIVEN("a Signal with no connections") {
 		mw::Signal<int> signal;
@@ -205,6 +209,37 @@ SCENARIO("using signal", "[signal]") {
 			THEN("old signal should be empty") {
 				REQUIRE(signal.empty());
 			}
+		}
+	}
+
+	GIVEN("Testing if compilable") {
+		{
+			mw::Signal<A> signal;
+			signal.connect([](A) {});
+		
+			signal(A{});
+			A tmp;
+			signal(tmp);
+			const A constTmp;
+			signal(constTmp);
+		}
+		{
+			mw::Signal<A&> signal;
+			signal.connect([](A) {});
+
+			signal(A{});
+			A tmp;
+			signal(tmp);
+		}
+		{
+			mw::Signal<const A&> signal;
+			signal.connect([](A) {});
+
+			signal(A{});
+			A tmp;
+			signal(tmp);
+			const A constTmp;
+			signal(constTmp);
 		}
 	}
 
