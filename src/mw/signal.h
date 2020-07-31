@@ -113,6 +113,7 @@ namespace mw {
 		Signal(Signal&&) noexcept;
 		Signal& operator=(Signal&&) noexcept;
 
+		[[nodiscard]]
 		signals::Connection connect(const Callback& callback);
 		
 		template <class... Params>
@@ -178,7 +179,10 @@ namespace mw {
 	template <class... A>
 	template <class... Params>
 	void Signal<A...>::operator()(Params&&... a) {
-		for (auto& [info, callback]: functions_) {
+		const auto size = functions_.size();
+		// Using index instead of foreach in order to be able to add callbacks during iteration.
+		for (int i = 0; i < size; ++i) {
+			auto& [_, callback] = functions_[i];
 			callback(a...);
 		}
 	}
@@ -214,6 +218,6 @@ namespace mw {
 		}
 	}
 
-} // Namespace mw.
+}
 
-#endif // SIGNAL_MW_SIGNAL_H
+#endif

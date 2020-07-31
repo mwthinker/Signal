@@ -212,10 +212,61 @@ SCENARIO("using signal", "[signal]") {
 		}
 	}
 
+	GIVEN("A Signal with one callback adding a callback") {
+		mw::Signal<int> signal;
+		int nbrOfCallbacks = 0;
+
+		auto c = signal.connect([&](int) {
+			++nbrOfCallbacks;
+			auto c = signal.connect([&](int) {
+				++nbrOfCallbacks;
+			});
+		});
+
+		WHEN("invoke the callback") {
+			signal(6);
+
+			THEN("new callback should not be called") {
+				REQUIRE(nbrOfCallbacks == 1);
+			}
+			THEN("callback added") {
+				REQUIRE(signal.size() == 2);
+			}
+		}
+	}
+
+	GIVEN("A Signal with one callback which doing nothing and one callback adding a callback") {
+		constexpr int DummyValue = 123;
+		mw::Signal<int> signal;
+		int nbrOfCallbacks = 0;
+
+		auto c = signal.connect([&](int) {
+			++nbrOfCallbacks;
+			auto c = signal.connect([&](int) {
+				++nbrOfCallbacks;
+			});
+		});
+
+		auto c2 = signal.connect([&](int) {
+			++nbrOfCallbacks;
+		});
+
+		WHEN("invoke the callback") {
+			signal(DummyValue);
+
+			THEN("new callback should not be called") {
+				REQUIRE(nbrOfCallbacks == 2);
+			}
+			THEN("callback added") {
+				REQUIRE(signal.size() == 3);
+			}
+		}
+	}
+
 	GIVEN("Testing if compilable") {
 		{
 			mw::Signal<A> signal;
-			signal.connect([](A) {});
+			auto c = signal.connect([](A) {});
 		
 			signal(A{});
 			A tmp;
@@ -225,7 +276,7 @@ SCENARIO("using signal", "[signal]") {
 		}
 		{
 			mw::Signal<A&> signal;
-			signal.connect([](A) {});
+			auto c = signal.connect([](A) {});
 
 			signal(A{});
 			A tmp;
@@ -233,7 +284,7 @@ SCENARIO("using signal", "[signal]") {
 		}
 		{
 			mw::Signal<const A&> signal;
-			signal.connect([](A) {});
+			auto c = signal.connect([](A) {});
 
 			signal(A{});
 			A tmp;

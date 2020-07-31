@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1...3.17)
+cmake_minimum_required(VERSION 3.14)
 project(Signal_Test
 	DESCRIPTION
 		"Test the project Signal using Catch2"
