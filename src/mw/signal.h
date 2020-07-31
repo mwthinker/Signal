@@ -41,17 +41,17 @@ namespace mw {
 				SignalInterface(const SignalInterface&) = delete;
 				SignalInterface& operator=(const SignalInterface&) = delete;
 
-				virtual void disconnect(size_t id) = 0;
+				virtual void disconnect(int id) = 0;
 			};
 
 			struct Info {
-				Info(size_t idValue, SignalInterface* signalPointer)
+				Info(int idValue, SignalInterface* signalPointer)
 					: signal{signalPointer}
 					, id{idValue} {
 				}
 
 				SignalInterface* signal;
-				const size_t id;
+				const int id;
 			};
 
 			using InfoPtr = std::shared_ptr<Info>;
@@ -121,14 +121,14 @@ namespace mw {
 
 		void clear();
 
-		size_t size() const noexcept;
+		int size() const noexcept;
 
 		bool empty() const noexcept;
 
 	private:
 		using InfoPtr = signals::Connection::InfoPtr;
 
-		void disconnect(size_t id) override;
+		void disconnect(int id) override;
 
 		struct Pair {
 			InfoPtr info;
@@ -136,7 +136,7 @@ namespace mw {
 		};
 
 		std::vector<Pair> functions_; // All mapped callbacks.
-		size_t id_{}; // The id mapped to the last added function.
+		int id_{}; // The id mapped to the last added function.
 	};
 
 	// ------------ Definitions ------------
@@ -179,7 +179,7 @@ namespace mw {
 	template <class... A>
 	template <class... Params>
 	void Signal<A...>::operator()(Params&&... a) {
-		const auto size = functions_.size();
+		const auto size = static_cast<int>(functions_.size());
 		// Using index instead of foreach in order to be able to add callbacks during iteration.
 		for (int i = 0; i < size; ++i) {
 			auto& [_, callback] = functions_[i];
@@ -196,8 +196,8 @@ namespace mw {
 	}
 	
 	template <class... A>
-	size_t Signal<A...>::size() const noexcept {
-		return functions_.size();
+	int Signal<A...>::size() const noexcept {
+		return static_cast<int>(functions_.size());
 	}
 
 	template <class... A>
@@ -206,7 +206,7 @@ namespace mw {
 	}
 
 	template <class... A>
-	void Signal<A...>::disconnect(size_t id) {
+	void Signal<A...>::disconnect(int id) {
 		// Remove id from vector.
 		for (auto& pair : functions_) {
 			if (pair.info->id == id) {
