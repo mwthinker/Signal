@@ -233,7 +233,7 @@ SCENARIO("using signal", "[signal]") {
 				REQUIRE(signal.size() == 2);
 			}
 		}
-	}
+	}	
 
 	GIVEN("A Signal with one callback which doing nothing and one callback adding a callback") {
 		constexpr int DummyValue = 123;
@@ -259,6 +259,60 @@ SCENARIO("using signal", "[signal]") {
 			}
 			THEN("callback added") {
 				REQUIRE(signal.size() == 3);
+			}
+		}
+	}
+
+	GIVEN("Disconnect a slot during execution of a signal") {
+		mw::Signal<int> signal;
+		int nbrOfCallbacks = 0;
+
+		mw::signals::Connection connection;
+
+		connection = signal.connect([&](int) {
+			++nbrOfCallbacks;
+			connection.disconnect();
+		});
+
+		WHEN("invoke the slot") {
+			signal(6);
+
+			THEN("slot removed") {
+				REQUIRE(nbrOfCallbacks == 1);
+				REQUIRE(signal.size() == 0);
+			}
+		}
+	}
+
+	GIVEN("Disconnect one slot of two during execution of a signal") {
+		mw::Signal<int> signal;
+		int nbrOfCallbacks = 0;
+
+		mw::signals::Connection connection;
+
+		connection = signal.connect([&](int) {
+			++nbrOfCallbacks;
+			connection.disconnect();
+		});
+
+		auto tmp = signal.connect([&](int) {
+			++nbrOfCallbacks;
+		});
+
+		WHEN("invoke the slot") {
+			signal(6);
+
+			THEN("slot removed") {
+				REQUIRE(nbrOfCallbacks == 2);
+				REQUIRE(signal.size() == 1);
+			}
+		}
+	}
+
+	GIVEN("") {
+		WHEN("") {
+			THEN("") {
+
 			}
 		}
 	}
@@ -292,6 +346,51 @@ SCENARIO("using signal", "[signal]") {
 			const A constTmp;
 			signal(constTmp);
 		}
+	}
+
+}
+
+
+SCENARIO("using ScopedConnections", "[ScopedConnections]") {
+	GIVEN("a Signal with multiple connections") {
+		mw::Signal<int> signal;
+
+		mw::signals::ScopedConnections connections;
+		connections += {
+			signal.connect([](int) {}),
+			signal.connect([](int) {})
+		};
+
+		WHEN("connections are disconnected") {
+			connections.disconnectAll();
+
+			THEN("signal is not empty") {
+				REQUIRE(signal.empty() == false);
+			}
+		}
+
+	}
+
+}
+
+SCENARIO("using PublicSignal", "[PublicSignal]") {
+	GIVEN("a Signal with multiple connections") {
+		mw::Signal<int> signal;
+
+		mw::signals::ScopedConnections connections;
+		connections += {
+			signal.connect([](int) {}),
+				signal.connect([](int) {})
+		};
+
+		WHEN("connections are disconnected") {
+			connections.disconnectAll();
+
+			THEN("signal is not empty") {
+				REQUIRE(signal.empty() == false);
+			}
+		}
+
 	}
 
 }

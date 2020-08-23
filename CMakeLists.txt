@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1...3.14)
+cmake_minimum_required(VERSION 3.14)
 
 set(VCPKG_ROOT $ENV{VCPKG_ROOT})
 if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -33,3 +33,9 @@ option(Signal_Test "Signal_Test project is added" OFF)
 if (Signal_Test)
 	add_subdirectory(Signal_Test)
 endif (Signal_Test)
+
+message(STATUS "Signal_Example is available to add: -DCppSdl2_Example=1")
+option(Signal_Example "Add Signal_Example project." OFF)
+if (Signal_Example)
+	add_subdirectory(Signal_Example)
+endif (Signal_Example)
