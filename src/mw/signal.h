@@ -11,8 +11,8 @@ namespace mw {
 	class Signal;
 
 	namespace signals {
-
-		// A connection remembers a connection.
+		
+		// Used to disconnect a slot from a signal.
 		class Connection {
 		public:
 			template <class...> friend class ::mw::Signal;
@@ -108,11 +108,16 @@ namespace mw {
 
 			void operator+=(std::initializer_list<Connection> connections) {
 				connections_.insert(connections_.end(), connections.begin(), connections.end());
-				int a = 1;
 			}
 
-			void disconnectAll() {
+			void clear() {
 				connections_.clear();
+			}
+
+			void cleanUp() {
+				connections_.erase(std::remove_if(connections_.begin(), connections_.end(), [](const ScopedConnection& connection) {
+					return !connection.connected();
+				}), connections_.end());
 			}
 
 		private:
@@ -175,11 +180,6 @@ namespace mw {
 		}
 
 		[[nodiscard]]
-		signals::Connection operator+=(const Callback& callback) {
-			return connect(callback);
-		}
-
-		[[nodiscard]]
 		signals::Connection connect(const Callback& callback) {
 			if (signal_) {
 				return signal_->connect(callback);
@@ -189,7 +189,8 @@ namespace mw {
 
 	private:
 		MacroSignal() = default;
-		
+		MacroSignal(const MacroSignal&) = delete;
+		MacroSignal& operator=(const MacroSignal&) = delete;
 		MacroSignal(MacroSignal&& publicSignal)
 			: signal_{std::exchange(publicSignal.signal_, nullptr)} {
 		}
@@ -210,26 +211,16 @@ namespace mw {
 		friend Friend;
 
 		[[nodiscard]]
-		signals::Connection operator+=(const typename Signal<Args...>::Callback& callback) {
-			return signal_.connect(callback);
-		}
-
-		[[nodiscard]]
 		signals::Connection connect(const Callback& callback) {
 			return signal_.connect(callback);
 		}
 
 	private:
 		PublicSignal() = default;
-		
-		PublicSignal(PublicSignal&& publicSignal) noexcept
-			: signal_{std::move(signal_)} {
-		}
-		
-		PublicSignal& operator=(PublicSignal&& publicSignal) noexcept {
-			signal_ = std::move(signal_);
-			return *this;
-		}
+		PublicSignal(const PublicSignal&) = delete;
+		PublicSignal& operator=(const PublicSignal&) = delete;
+		PublicSignal(PublicSignal&&) noexcept = default;
+		PublicSignal& operator=(PublicSignal&&) noexcept = default;
 
 		template <class... Params>
 		void operator()(Params&&... params) {
@@ -238,7 +229,7 @@ namespace mw {
 
 		template <class... Params>
 		void invoke(Params&&... params) {
-			signal_.invoke(std::forward<Params>(params));
+			signal_.invoke(std::forward<Params>(params)...);
 		}
 
 		void clear() {
@@ -257,10 +248,10 @@ namespace mw {
 	};
 
 #define MW_SIGNAL(name, ...) \
-	private: \
+private: \
 mw::Signal<##__VA_ARGS__> name ##_; \
 public: \
-	mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
+mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
 
 	// ------------ Definitions ------------
 

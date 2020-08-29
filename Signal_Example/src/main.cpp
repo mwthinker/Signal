@@ -86,7 +86,7 @@ void example() {
 	mw::signals::ScopedConnections connections;
 
 	connections += {
-		unit.gameEventUpdated += [&](GameEvent gameEvent) {
+		unit.gameEventUpdated.connect([&](GameEvent gameEvent) {
 			switch (gameEvent) {
 				case GameEvent::GameOver:
 					gameOver = true;
@@ -96,10 +96,10 @@ void example() {
 					std::cout << "Walking\n";
 					break;
 			}
-		},
-		unit.pointsUpdated += [&](int points) {
+		}),
+		unit.pointsUpdated.connect([&](int points) {
 			std::cout << "Points updated: " << points << "\n";
-		}
+		})
 	};
 
 	while (!gameOver) {

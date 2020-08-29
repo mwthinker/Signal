@@ -354,7 +354,7 @@ SCENARIO("using ScopedConnections", "[ScopedConnections]") {
 		};
 
 		WHEN("connections are disconnected") {
-			connections.disconnectAll();
+			connections.clear();
 
 			THEN("signal is empty") {
 				REQUIRE(signal.empty() == true);
