@@ -11,7 +11,7 @@ namespace mw {
 	class Signal;
 
 	namespace signals {
-		
+
 		// Used to disconnect a slot from a signal.
 		class Connection {
 		public:
@@ -23,7 +23,7 @@ namespace mw {
 
 			Connection& operator=(const Connection&) = default;
 			Connection& operator=(Connection&&) noexcept = default;
-			
+
 			void disconnect();
 
 			bool connected() const;
@@ -54,7 +54,7 @@ namespace mw {
 			};
 
 			using InfoPtr = std::shared_ptr<Info>;
-		
+
 			// Is called from mw::Signal to bind a connection.
 			explicit Connection(InfoPtr c)
 				: info_{std::move(c)} {
@@ -67,8 +67,8 @@ namespace mw {
 		class ScopedConnection {
 		public:
 			ScopedConnection() = default;
-			ScopedConnection(const Connection& connection) 
-				: connection_{connection}  {
+			ScopedConnection(const Connection& connection)
+				: connection_{connection} {
 			}
 			~ScopedConnection() {
 				connection_.disconnect();
@@ -143,12 +143,19 @@ namespace mw {
 
 		[[nodiscard]]
 		signals::Connection connect(const Callback& callback);
-		
+
 		template <class... Params>
 		void operator()(Params&&... params);
 
 		template <class... Params>
 		void invoke(Params&&... params);
+
+		template <class T, class... TArgs>
+		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
+			return connect([object, ptr](A... args) {
+				(object->*ptr)(args...);
+			});
+		}
 
 		void clear();
 
@@ -187,6 +194,11 @@ namespace mw {
 			return {};
 		}
 
+		template <class T, class... TArgs>
+		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
+			return signal_.connect(object, ptr);
+		}
+
 	private:
 		MacroSignal() = default;
 		MacroSignal(const MacroSignal&) = delete;
@@ -194,7 +206,7 @@ namespace mw {
 		MacroSignal(MacroSignal&& publicSignal)
 			: signal_{std::exchange(publicSignal.signal_, nullptr)} {
 		}
-		
+
 		MacroSignal& operator=(MacroSignal&& publicSignal) {
 			signal_ = std::exchange(publicSignal.signal_, nullptr);
 			return *this;
@@ -213,6 +225,11 @@ namespace mw {
 		[[nodiscard]]
 		signals::Connection connect(const Callback& callback) {
 			return signal_.connect(callback);
+		}
+
+		template <class T, class... TArgs>
+		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
+			return signal_.connect(object, ptr);
 		}
 
 	private:
@@ -260,11 +277,11 @@ mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
 			info_->signal->disconnect(info_->id);
 		}
 	}
-	
+
 	inline bool signals::Connection::connected() const {
 		return info_ && info_->signal != nullptr;
 	}
-	
+
 	template <class... A>
 	Signal<A...>::Signal::~Signal() {
 		clear();
@@ -275,7 +292,7 @@ mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
 		: functions_{std::move(signal.functions_)}
 		, id_{std::exchange(signal.id_, 0)} {
 	}
-	
+
 	template <class... A>
 	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) noexcept {
 		functions_ = std::move(signal.functions_);
@@ -314,14 +331,14 @@ mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
 		}
 		functions_.clear();
 	}
-	
+
 	template <class... A>
 	int Signal<A...>::size() const noexcept {
 		return static_cast<int>(functions_.size());
 	}
 
 	template <class... A>
-	bool Signal<A...>::empty() const noexcept{
+	bool Signal<A...>::empty() const noexcept {
 		return functions_.empty();
 	}
 
