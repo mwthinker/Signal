@@ -7,35 +7,6 @@ enum class GameEvent {
 	Walk
 };
 
-class Human {
-public:
-	MW_SIGNAL(gameEventUpdated, GameEvent)
-	MW_SIGNAL(pointsUpdated, int)
-
-	void walk() {
-		++x_;
-		
-		gameEventUpdated_(GameEvent::Walk);
-		if (x_ == 2) {
-			++points_;
-			pointsUpdated_(points_);
-		}
-
-		if (x_ == 3) {
-			++points_;
-			pointsUpdated_(points_);
-		}
-
-		if (x_ == 5) {
-			gameEventUpdated_(GameEvent::GameOver);
-		}
-	}
-
-private:
-	int x_{0};
-	int points_{0};
-};
-
 class Zombie {
 public:
 	Zombie() = default;
@@ -49,6 +20,7 @@ public:
 	Zombie& operator=(Zombie&& zombie) noexcept {
 		gameEventUpdated = std::move(zombie.gameEventUpdated);
 		pointsUpdated = std::move(zombie.pointsUpdated);
+		return *this;
 	}
 
 	mw::PublicSignal<Zombie, GameEvent> gameEventUpdated;
@@ -108,10 +80,7 @@ void example() {
 }
 
 int main(int argc, char** argv) {
-	std::cout << "\nExample MacroSignal Human\n";
-	example<Human>();
-
-	std::cout << "\nExample PublicSignal Zombie\n";
+	std::cout << "Example PublicSignal Zombie\n";
 	example<Zombie>();
 
 	Zombie zombie;

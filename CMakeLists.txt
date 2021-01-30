@@ -34,7 +34,7 @@ if (Signal_Test)
 	add_subdirectory(Signal_Test)
 endif (Signal_Test)
 
-message(STATUS "Signal_Example is available to add: -DCppSdl2_Example=1")
+message(STATUS "Signal_Example is available to add: -DSignal_Example=1")
 option(Signal_Example "Add Signal_Example project." OFF)
 if (Signal_Example)
 	add_subdirectory(Signal_Example)

@@ -177,44 +177,6 @@ namespace mw {
 		int id_{}; // The id mapped to the last added function.
 	};
 
-	template <class... Args>
-	class MacroSignal {
-	public:
-		using Callback = typename Signal<Args...>::Callback;
-
-		MacroSignal(Signal<Args...>* signal)
-			: signal_{signal} {
-		}
-
-		[[nodiscard]]
-		signals::Connection connect(const Callback& callback) {
-			if (signal_) {
-				return signal_->connect(callback);
-			}
-			return {};
-		}
-
-		template <class T, class... TArgs>
-		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
-			return signal_.connect(object, ptr);
-		}
-
-	private:
-		MacroSignal() = default;
-		MacroSignal(const MacroSignal&) = delete;
-		MacroSignal& operator=(const MacroSignal&) = delete;
-		MacroSignal(MacroSignal&& publicSignal)
-			: signal_{std::exchange(publicSignal.signal_, nullptr)} {
-		}
-
-		MacroSignal& operator=(MacroSignal&& publicSignal) {
-			signal_ = std::exchange(publicSignal.signal_, nullptr);
-			return *this;
-		}
-
-		Signal<Args...>* signal_{};
-	};
-
 	template <class Friend, class... Args>
 	class PublicSignal {
 	public:
@@ -263,12 +225,6 @@ namespace mw {
 
 		Signal<Args...> signal_{};
 	};
-
-#define MW_SIGNAL(name, ...) \
-private: \
-mw::Signal<##__VA_ARGS__> name ##_; \
-public: \
-mw::MacroSignal<##__VA_ARGS__> ## name = &## name ## _; \
 
 	// ------------ Definitions ------------
 
