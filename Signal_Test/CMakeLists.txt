@@ -29,7 +29,7 @@ if (Catch2_FOUND)
 
 	set_target_properties(Signal_Test
 		PROPERTIES
-			CXX_STANDARD 17
+			CXX_STANDARD 20
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 	)
