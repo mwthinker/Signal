@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <functional>
-#include <concepts>
 
 namespace mw {
 
@@ -41,15 +40,17 @@ namespace mw {
 				SignalInterface(const SignalInterface&) = delete;
 				SignalInterface& operator=(const SignalInterface&) = delete;
 
-				virtual void disconnect(int id) = 0;
+				virtual void disconnect(size_t id) = 0;
 			};
 
 			struct Info {
-				int id;
 				SignalInterface* signal;
 			};
-
 			using InfoPtr = std::shared_ptr<Info>;
+
+			static inline size_t calculateHash(const InfoPtr& info) {
+				return std::hash<InfoPtr>{}(info);
+			}
 
 			// Is called from mw::Signal to bind a connection.
 			explicit Connection(InfoPtr c)
@@ -94,10 +95,6 @@ namespace mw {
 
 		class ScopedConnections {
 		public:
-			~ScopedConnections() {
-				connections_.clear();
-			}
-
 			void operator+=(const Connection& scopedConnection) {
 				connections_.push_back(scopedConnection);
 			}
@@ -106,10 +103,12 @@ namespace mw {
 				connections_.insert(connections_.end(), connections.begin(), connections.end());
 			}
 
+			// Removes all connections.
 			void clear() {
 				connections_.clear();
 			}
 
+			// Removes all unconnected connections, i.e. all connections with no callback assigned.
 			void cleanUp() {
 				connections_.erase(std::remove_if(connections_.begin(), connections_.end(), [](const ScopedConnection& connection) {
 					return !connection.connected();
@@ -146,7 +145,7 @@ namespace mw {
 		template <typename... Params>
 		void invoke(Params&&... params);
 
-		template <typename T, typename... TArgs> // requires std::is_same_v<T, U>
+		template <typename T, typename... TArgs>
 		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
 			return connect([object, ptr](A... args) {
 				(object->*ptr)(args...);
@@ -162,7 +161,7 @@ namespace mw {
 	private:
 		using InfoPtr = signals::Connection::InfoPtr;
 
-		void disconnect(int id) override;
+		void disconnect(size_t id) override;
 
 		struct Pair {
 			InfoPtr info;
@@ -170,7 +169,6 @@ namespace mw {
 		};
 
 		std::vector<Pair> functions_; // All mapped callbacks.
-		int id_{}; // The id mapped to the last added function.
 	};
 
 	template <typename Friend, typename... Args>
@@ -219,14 +217,14 @@ namespace mw {
 			return signal_.empty();
 		}
 
-		Signal<Args...> signal_{};
+		Signal<Args...> signal_;
 	};
 
 	// ------------ Definitions ------------
 
 	inline void signals::Connection::disconnect() {
 		if (info_ && info_->signal != nullptr) {
-			info_->signal->disconnect(info_->id);
+			info_->signal->disconnect(Connection::calculateHash(info_));
 		}
 	}
 
@@ -241,20 +239,18 @@ namespace mw {
 
 	template <typename... A>
 	Signal<A...>::Signal(Signal<A...>&& signal) noexcept
-		: functions_{std::move(signal.functions_)}
-		, id_{std::exchange(signal.id_, 0)} {
+		: functions_{std::move(signal.functions_)} {
 	}
 
 	template <typename... A>
 	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) noexcept {
 		functions_ = std::move(signal.functions_);
-		id_ = std::exchange(signal.id_, 0);
 		return *this;
 	}
 
 	template <typename... A>
 	signals::Connection Signal<A...>::connect(const Callback& callback) {
-		auto c = std::make_shared<signals::Connection::Info>(++id_, this);
+		auto c = std::make_shared<signals::Connection::Info>(this);
 		functions_.push_back({c, callback});
 		return signals::Connection(c);
 	}
@@ -295,12 +291,12 @@ namespace mw {
 	}
 
 	template <typename... A>
-	void Signal<A...>::disconnect(int id) {
+	void Signal<A...>::disconnect(size_t id) {
 		auto size = static_cast<int>(functions_.size());
 		// Using index instead of foreach in order to be able to add callbacks during iteration.
 		for (int i = 0; i < size; ++i) {
 			auto& pair = functions_[i];
-			if (pair.info->id == id) {
+			if (signals::Connection::calculateHash(pair.info) == id) {
 				pair.info->signal = nullptr;
 				std::swap(pair, functions_.back());
 				functions_.pop_back();
