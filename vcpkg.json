@@ -6,6 +6,6 @@
 	"description": "A simple Signals and Slots library based on C++17.",
 	"license": "MIT",
 	"dependencies": [
-		"catch2"
+		"gtest"
 	]
 }

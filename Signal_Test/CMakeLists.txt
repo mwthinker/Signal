@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 project(Signal_Test
 	DESCRIPTION
 		"Test the project Signal using Catch2"
@@ -6,18 +6,20 @@ project(Signal_Test
 		CXX
 )
 
-find_package(Catch2 CONFIG)
-if (Catch2_FOUND)
+find_package(GTest CONFIG REQUIRED)
+if (GTest_FOUND)
+	enable_testing()
 
 	add_executable(Signal_Test
 		src/main.cpp
+		src/scopedconnectiontests.cpp
 		${SIGNAL_HEADERS}
 	)
 
 	target_link_libraries(Signal_Test 
 		PRIVATE
 			Signal
-			Catch2::Catch2
+			GTest::gtest GTest::gtest_main # GTest::gmock_main GTest::gmock 
 	)
 
 	if (MSVC)
@@ -33,7 +35,14 @@ if (Catch2_FOUND)
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 	)
+	
+	include(GoogleTest)
+	gtest_discover_tests(Signal_Test
+		#WORKING_DIRECTORY "src/"
+			
+	)
+	#add_test(NAME example_test COMMAND example)
 
-else (Catch2_FOUND)
-	message(STATUS "Catch2 not found, Signal_Test not created")
-endif (Catch2_FOUND)
+else (GTest_FOUND)
+	message(STATUS "GTest not found, Signal_Test not created")
+endif (GTest_FOUND)

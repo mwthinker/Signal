@@ -1,366 +1,293 @@
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
-#include <catch2/catch.hpp>
-
 #include <mw/signal.h>
+
+#include <gtest/gtest.h>
+
+// The fixture for testing class Foo.
+class SignalTest : public ::testing::Test {
+protected:
+	// You can remove any or all of the following functions if their bodies would
+	// be empty.
+
+	SignalTest() {
+		// You can do set-up work for each test here.
+	}
+
+	~SignalTest() override {
+		// You can do clean-up work that doesn't throw exceptions here.
+	}
+
+	// If the constructor and destructor are not enough for setting up
+	// and cleaning up each test, you can define the following methods:
+
+	void SetUp() override {
+		// Code here will be called immediately after the constructor (right
+		// before each test).
+	}
+
+	void TearDown() override {
+		// Code here will be called immediately after each test (right
+		// before the destructor).
+	}
+
+	// Class members declared here can be used by all tests in the test suite
+	// for Foo.
+};
+
+TEST_F(SignalTest, givenNewSignal_thenSignalIsEmpty) {
+	// Given.
+	mw::Signal<int> signal;
+
+	// Then.
+	EXPECT_TRUE(signal.empty());
+	EXPECT_EQ(0, signal.size());
+}
+
+TEST_F(SignalTest, givenSignal_whenConnectionAdded_thenSignalNotEmpty) {
+	// Given.
+	mw::Signal<int> signal;
+
+	// When.
+	[[maybe_unused]] auto connection = signal.connect([](int) {});
+
+	// Then.
+	EXPECT_FALSE(signal.empty());
+	EXPECT_EQ(1, signal.size());
+}
+
+TEST_F(SignalTest, givenSignal_whenNbrOfConnectionsAdded_thenSignalHasSizeNbr) {
+	// Given.
+	const int Nbr = 17;
+	mw::Signal<int> signal;
+
+	// When.
+	for (int i = 0; i < Nbr; ++i) {
+		[[maybe_unused]] auto connection = signal.connect([](int) {});
+	}
+
+	// Then.
+	EXPECT_FALSE(signal.empty());
+	EXPECT_EQ(Nbr, signal.size());
+}
+
+TEST_F(SignalTest, givenSignalAndActiveConnection_whenInvokeMultipleTimes_thenItIsinvokedMultipleTimes) {
+	// Given.
+	int nbr = 0;
+	mw::Signal<int> signal;
+	[[maybe_unused]] auto tmp = signal.connect([&nbr](int) {
+		++nbr;
+	});
+
+	// When.
+	const int InvokedNbr = 17;
+	for (int i = 0; i < InvokedNbr; ++i) {
+		signal.invoke(1);
+	}
+
+	// Then.
+	EXPECT_EQ(InvokedNbr, nbr);
+}
+
+TEST_F(SignalTest, givenSignalAndActiveConnection_whenClear_thenConnectionIsRemoved) {
+	// Given.
+	int nbr = 0;
+	mw::Signal<int> signal;
+	auto connection = signal.connect([&nbr](int) {
+		++nbr;
+	});
+	EXPECT_TRUE(connection.connected());
+
+	// When.
+	signal.clear();
+
+	// Then.
+	EXPECT_FALSE(connection.connected());
+}
+
+TEST_F(SignalTest, givenSignal_whenInvokedWithSpecificArgument_thenFunctionInvokedWithSpecificArgument) {
+	// Given.
+	int specificVar = 0;
+	mw::Signal<int> signal;
+	auto connection = signal.connect([&specificVar](int value) {
+		specificVar = value;
+		});
+	EXPECT_TRUE(connection.connected());
+
+	// When.
+	signal.invoke(2);
+
+	// Then.
+	EXPECT_EQ(2, specificVar);
+}
+
+TEST_F(SignalTest, givenSignalWithRemovedConnection_whenInvoked_thenFunctionIsNotInvoked) {
+	// Given.
+	bool invoked = false;
+	mw::Signal<int> signal;
+	auto connection = signal.connect([&invoked](int value) {
+		invoked = true;
+	});
+	EXPECT_TRUE(connection.connected());
+	EXPECT_FALSE(invoked);
+
+	// When.
+	signal.invoke(2);
+
+	// Then.
+	EXPECT_FALSE(invoked);
+}
+
+TEST_F(SignalTest, givenSignal_whenMovedToNewSignalObject_thenNewSignalShallContainAllConnections) {
+	// Given.
+	mw::Signal<int> signal;
+	auto connection = signal.connect([](int value) {});
+	auto connection2 = signal.connect([](int value) {});
+	
+	EXPECT_EQ(2, signal.size());
+	EXPECT_FALSE(signal.empty());
+
+	// When.
+	mw::Signal<int> newSignal = std::move(signal);
+
+	// Then.
+	EXPECT_EQ(0, signal.size());
+	EXPECT_TRUE(signal.empty());
+
+	EXPECT_EQ(2, newSignal.size());
+	EXPECT_FALSE(newSignal.empty());
+}
+
+TEST_F(SignalTest, givenSignal_whenAssignedToNewSignalObject_thenNewSignalShallContainAllConnections) {
+	// Given.
+	mw::Signal<int> signal;
+	auto connection = signal.connect([](int value) {});
+	auto connection2 = signal.connect([](int value) {});
+
+	EXPECT_EQ(2, signal.size());
+	EXPECT_FALSE(signal.empty());
+
+	// When.
+	mw::Signal<int> newSignal;
+	newSignal = std::move(signal);
+
+	// Then.
+	EXPECT_EQ(0, signal.size());
+	EXPECT_TRUE(signal.empty());
+
+	EXPECT_EQ(2, newSignal.size());
+	EXPECT_FALSE(newSignal.empty());
+}
+
+TEST_F(SignalTest, givenSignal_whenAddingNewCallbackInCallback_thenNewCallbackShouldNotBeInvoked) {
+	// Given.
+	mw::Signal<int> signal;
+	auto connection = signal.connect([&](int value) {
+		auto connection2 = signal.connect([](int value) {
+			FAIL();
+		});
+	});
+
+	EXPECT_EQ(2, signal.size());
+	EXPECT_FALSE(signal.empty());
+
+	// When.
+	signal.invoke(2);
+	
+
+	// Then not throw.
+}
+
+
+TEST_F(SignalTest, givenSignalWithConnections_whenRemovedConnectionAndInvoke_thenOnlyActiveConnectionIsInvoked) {
+	// Given.
+	mw::Signal<int> signal;
+	bool called1 = false;
+	auto connection1 = signal.connect([&called1](int) {
+		called1 = true;
+	});
+	bool called2 = false;
+	auto connection2 = signal.connect([&called2](int) {
+		called2 = true;
+	});
+
+	// When.
+	connection1.disconnect();
+	signal.invoke(1);
+
+	// Then.
+	EXPECT_FALSE(called1);
+	EXPECT_FALSE(connection1.connected());
+	EXPECT_TRUE(called2);
+	EXPECT_FALSE(connection2.connected());
+}
+
+TEST_F(SignalTest, givenSignalWithConnections_whenDisconnectiongDuringInvoke_then) {
+	FAIL();
+}
+
+
+TEST_F(SignalTest, givenSignalWithConnections_whenConnectionDisconnected_thenSignalSizeDecreesed) {
+	// Given.
+	mw::Signal<int> signal;
+	auto c1 = signal.connect([](int) {});
+	auto c2 = signal.connect([](int) {});
+
+	// When.
+	EXPECT_EQ(2, signal.size());
+	c1.disconnect();
+
+	// Then.
+	EXPECT_EQ(1, signal.size());
+}
 
 struct A {
 	int nbr{7};
 };
 
-SCENARIO("using signal", "[signal]") {
-	GIVEN("a Signal with no connections") {
-		mw::Signal<int> signal;
-		REQUIRE(signal.empty() == true);
-		REQUIRE(signal.size() == 0);
-		
-		WHEN("connection is added") {
-			mw::signals::Connection c1 = signal.connect([](int) {});
+TEST_F(SignalTest, testCompilable) {
+	{
+		mw::Signal<A> signal;
+		auto c = signal.connect([](A) {});
 
-			THEN("connection size is increased") {
-				REQUIRE(signal.size() == 1);
-			}
-			THEN("signal is not empty") {
-				REQUIRE(signal.empty() == false);
-			}
-		}
-
-		WHEN("two connections are added") {
-			mw::signals::Connection c1 = signal.connect([](int) {});
-			mw::signals::Connection c2 = signal.connect([](int) {});
-
-			THEN("connection size is increased") {
-				REQUIRE(signal.size() == 2);
-			}
-			THEN("signal is not empty") {
-				REQUIRE(signal.empty() == false);
-			}
-		}
-		
+		signal(A{});
+		A tmp;
+		signal(tmp);
+		const A constTmp;
+		signal(constTmp);
 	}
+	{
+		mw::Signal<A&> signal;
+		auto c = signal.connect([](A) {});
 
-	GIVEN("a Signal with connections") {
-		mw::Signal<int> signal;
-		mw::signals::Connection c1 = signal.connect([](int) {});
-		mw::signals::Connection c2 = signal.connect([](int) {});
-
-		WHEN("disconnecting one connection") {
-			c1.disconnect();
-
-			THEN("connection size is decreased") {
-				REQUIRE(signal.size() == 1);
-			}
-			THEN("signal is not empty") {
-				REQUIRE(signal.empty() == false);
-			}
-			THEN("one connection should be connected") {
-				REQUIRE(!c1.connected());
-			}
-			THEN("one connection should be disconnected") {
-				REQUIRE(c2.connected());
-			}
-		}
-
-		WHEN("calling connections") {			
-			THEN("one connection should be disconnected") {
-				REQUIRE(c2.connected());
-			}
-		}
+		signal(A{});
+		A tmp;
+		signal(tmp);
 	}
+	{
+		mw::Signal<const A&> signal;
+		auto c = signal.connect([](A) {});
 
-	GIVEN("a Signal with scoped connections") {
-		mw::Signal<int> signal;
-
-		bool invokedC1 = false;
-		mw::signals::ScopedConnection c1 = signal.connect([&](int) { invokedC1 = true; });
-		
-		auto c2 = signal.connect([&](int) {});
-
-		WHEN("disconnecting one connection") {
-			c1.disconnect();
-
-			THEN("connection size is decreased") {
-				REQUIRE(signal.size() == 1);
-			}
-			THEN("signal is not empty") {
-				REQUIRE(signal.empty() == false);
-			}
-			THEN("one connection should be connected") {
-				REQUIRE(!c1.connected());
-			}
-			THEN("one connection should be disconnected") {
-				REQUIRE(c2.connected());
-			}
-		}
-
-		WHEN("release a scoped connection, disconnects and invoke callbacks") {
-			c1.release();
-			c1.disconnect();
-
-			signal(1);
-
-			THEN("callback should been invoked") {
-				REQUIRE(invokedC1);
-			}
-		}
-
-		WHEN("scoped connection getting out of scope, disconnects and invoke callbacks") {
-			c1 = {};
-			c1.disconnect();
-
-			signal(1);
-
-			THEN("callback should been invoked") {
-				REQUIRE(invokedC1);
-			}
-		}
+		signal(A{});
+		A tmp;
+		signal(tmp);
+		const A constTmp;
+		signal(constTmp);
 	}
-
-	GIVEN("a Signal with added functions") {
-		mw::Signal signal;
-		int nbr = 0;
-		auto function = [&nbr]() {
-			nbr++;
-		};
-		auto c1 = signal.connect(function);
-		auto c2 = signal.connect(function);
-		auto c3 = signal.connect(function);
-
-		WHEN("calling added function multiple times") {
-			for (int i = 0; i < 4; ++i) {
-				signal();
-			}
-
-			THEN("function should be called multiple times") {
-				REQUIRE(nbr == 4 * 3);
-			}
-		}
-
-		WHEN("calling clear") {
-			signal.clear();
-			THEN("all added functions should been removed") {
-				REQUIRE(signal.size() == 0);
-			}
-		}
-	}
-
-	GIVEN("a Signal added with function and parameters") {
-		mw::Signal<int> signal;
-		int nbr = 0;
-		auto function = [&nbr](int newNbr) {
-			nbr = newNbr;
-		};
-		auto c1 = signal.connect(std::bind(function, std::placeholders::_1));
-
-		WHEN("calling function with parameter") {
-			signal(8);
-
-			THEN("function should be called with the correct parameter") {
-				REQUIRE(nbr == 8);
-			}
-		}
-	}
-
-	GIVEN("a Signal added with function") {
-		mw::Signal<int> signal;
-		int nbr = 0;
-		auto function = [&nbr](int newNbr) {
-			nbr = newNbr;
-		};
-		auto c1 = signal.connect(std::bind(function, std::placeholders::_1));
-
-		WHEN("calling function with parameter") {
-			signal(8);
-
-			THEN("function should be called with the correct parameter") {
-				REQUIRE(nbr == 8);
-			}
-		}
-
-		WHEN("calling removed function") {
-			c1.disconnect();
-			signal(8);
-
-			THEN("function should not be called") {
-				REQUIRE(nbr != 8);
-			}
-		}
-
-		WHEN("move constructor to a new Signal obejct") {
-			mw::Signal<int> signal2(std::move(signal));
-			
-
-			THEN("new signal should contain the function") {
-				REQUIRE(signal2.size() == 1);
-			}
-
-			THEN("old signal should be empty") {
-				REQUIRE(signal.empty());
-			}
-		}
-
-		WHEN("move assignment to a new Signal obejct") {
-			mw::Signal<int> signal2;
-			signal2 = std::move(signal);
-
-			THEN("new signal should contain the function") {
-				REQUIRE(signal2.size() == 1);
-			}
-
-			THEN("old signal should be empty") {
-				REQUIRE(signal.empty());
-			}
-		}
-	}
-
-	GIVEN("A Signal with one callback adding a callback") {
-		mw::Signal<int> signal;
-		int nbrOfCallbacks = 0;
-
-		auto c = signal.connect([&](int) {
-			++nbrOfCallbacks;
-			auto c = signal.connect([&](int) {
-				++nbrOfCallbacks;
-			});
-		});
-
-		WHEN("invoke the callback") {
-			signal(6);
-
-			THEN("new callback should not be called") {
-				REQUIRE(nbrOfCallbacks == 1);
-			}
-			THEN("callback added") {
-				REQUIRE(signal.size() == 2);
-			}
-		}
-	}	
-
-	GIVEN("A Signal with one callback which doing nothing and one callback adding a callback") {
-		constexpr int DummyValue = 123;
-		mw::Signal<int> signal;
-		int nbrOfCallbacks = 0;
-
-		auto c = signal.connect([&](int) {
-			++nbrOfCallbacks;
-			auto c = signal.connect([&](int) {
-				++nbrOfCallbacks;
-			});
-		});
-
-		auto c2 = signal.connect([&](int) {
-			++nbrOfCallbacks;
-		});
-
-		WHEN("invoke the callback") {
-			signal(DummyValue);
-
-			THEN("new callback should not be called") {
-				REQUIRE(nbrOfCallbacks == 2);
-			}
-			THEN("callback added") {
-				REQUIRE(signal.size() == 3);
-			}
-		}
-	}
-
-	GIVEN("Disconnect a slot during execution of a signal") {
-		mw::Signal<int> signal;
-		int nbrOfCallbacks = 0;
-
-		mw::signals::Connection connection;
-
-		connection = signal.connect([&](int) {
-			++nbrOfCallbacks;
-			connection.disconnect();
-		});
-
-		WHEN("invoke the slot") {
-			signal(6);
-
-			THEN("slot removed") {
-				REQUIRE(nbrOfCallbacks == 1);
-				REQUIRE(signal.size() == 0);
-			}
-		}
-	}
-	
-	GIVEN("Disconnect one slot of two during execution of a signal") {
-		mw::Signal<int> signal;
-		int nbrOfCallbacks = 0;
-
-		mw::signals::Connection connection;
-
-		connection = signal.connect([&](int) {
-			++nbrOfCallbacks;
-			connection.disconnect();
-		});
-
-		auto tmp = signal.connect([&](int) {
-			++nbrOfCallbacks;
-		});
-
-		WHEN("invoke the slot") {
-			signal(6);
-
-			THEN("slot removed") {
-				REQUIRE(nbrOfCallbacks == 2);
-				REQUIRE(signal.size() == 1);
-			}
-		}
-	}
-
-	GIVEN("Testing if compilable") {
-		{
-			mw::Signal<A> signal;
-			auto c = signal.connect([](A) {});
-		
-			signal(A{});
-			A tmp;
-			signal(tmp);
-			const A constTmp;
-			signal(constTmp);
-		}
-		{
-			mw::Signal<A&> signal;
-			auto c = signal.connect([](A) {});
-
-			signal(A{});
-			A tmp;
-			signal(tmp);
-		}
-		{
-			mw::Signal<const A&> signal;
-			auto c = signal.connect([](A) {});
-
-			signal(A{});
-			A tmp;
-			signal(tmp);
-			const A constTmp;
-			signal(constTmp);
-		}
-	}
-
 }
 
+TEST_F(SignalTest, givenScopedConnections_whenGoingOutOfScope_thenSignalSizeDecreesed) {
+	// Given.
+	mw::Signal<int> signal;
+	auto connection = signal.connect([](int) {});
 
-SCENARIO("using ScopedConnections", "[ScopedConnections]") {
-	GIVEN("a Signal with multiple connections") {
-		mw::Signal<int> signal;
+	// When.
+	{
+		mw::signals::ScopedConnection scopedConnection = signal.connect([](int) {});
+		EXPECT_EQ(2, signal.size());
+		EXPECT_TRUE(scopedConnection.connected());
+		EXPECT_TRUE(connection.connected());
+	}	
 
-		mw::signals::ScopedConnections connections;
-		connections += {
-			signal.connect([](int) {}),
-			signal.connect([](int) {})
-		};
-
-		WHEN("connections are disconnected") {
-			connections.clear();
-
-			THEN("signal is empty") {
-				REQUIRE(signal.empty() == true);
-			}
-		}
-
-	}
-
+	// Then.
+	EXPECT_EQ(1, signal.size());
+	EXPECT_TRUE(connection.connected());
 }
