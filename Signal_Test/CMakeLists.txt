@@ -11,15 +11,15 @@ if (GTest_FOUND)
 	enable_testing()
 
 	add_executable(Signal_Test
-		src/main.cpp
+		src/signattests.cpp
 		src/scopedconnectiontests.cpp
 		${SIGNAL_HEADERS}
 	)
 
-	target_link_libraries(Signal_Test 
-		PRIVATE
+	target_link_libraries(Signal_Test
+		PUBLIC
 			Signal
-			GTest::gtest GTest::gtest_main # GTest::gmock_main GTest::gmock 
+			GTest::gtest GTest::gtest_main # Test explorer on Visual Studio 2022 will not find test if "GTest::gmock_main GTest::gmock" is added?
 	)
 
 	if (MSVC)
@@ -35,13 +35,6 @@ if (GTest_FOUND)
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 	)
-	
-	include(GoogleTest)
-	gtest_discover_tests(Signal_Test
-		#WORKING_DIRECTORY "src/"
-			
-	)
-	#add_test(NAME example_test COMMAND example)
 
 else (GTest_FOUND)
 	message(STATUS "GTest not found, Signal_Test not created")
