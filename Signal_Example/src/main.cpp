@@ -46,19 +46,18 @@ public:
 	}
 
 private:
-	int x_{0};
-	int points_{0};
+	int x_ = 0;
+	int points_ = 0;
 };
 
-template <class Unit>
 void example() {
 	bool gameOver = false;
 
-	Unit unit;
+	Zombie zombie;
 	mw::signals::ScopedConnections connections;
 
 	connections += {
-		unit.gameEventUpdated.connect([&](GameEvent gameEvent) {
+		zombie.gameEventUpdated.connect([&](GameEvent gameEvent) {
 			switch (gameEvent) {
 				case GameEvent::GameOver:
 					gameOver = true;
@@ -69,20 +68,21 @@ void example() {
 					break;
 			}
 		}),
-		unit.pointsUpdated.connect([&](int points) {
+		zombie.pointsUpdated.connect([&](int points) {
 			std::cout << "Points updated: " << points << "\n";
 		})
 	};
 
 	while (!gameOver) {
-		unit.walk();
+		zombie.walk();
 	}
 }
 
 int main(int argc, char** argv) {
 	std::cout << "Example PublicSignal Zombie\n";
-	example<Zombie>();
+	example();
 
+	// Test move constructor.
 	Zombie zombie;
 	Zombie zombie2 = std::move(zombie2);
 
