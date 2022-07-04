@@ -1,0 +1,47 @@
+name: build-run-tests
+on: [push, workflow_dispatch]
+
+jobs:
+  job:
+    name: ${{ matrix.os }}-${{ github.workflow }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            vcpkgCommitId: '4826ede84084395b0f87476e48ff6d4070eba0e4'
+            preset: 'windows'
+          - os: ubuntu-22.04
+            vcpkgCommitId: '4826ede84084395b0f87476e48ff6d4070eba0e4'
+            preset: 'unix'
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - uses: friendlyanon/setup-vcpkg@v1
+        with:
+          committish: ${{ matrix.vcpkgCommitId }}
+
+      - name: GCC version on Linux
+        shell: bash
+        run: g++ --version
+        if: runner.os == 'Linux'
+
+      - name: Run CMake with manifest mode vcpkg
+        shell: bash
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
+
+      - name: Compile binaries
+        shell: bash
+        run: cmake --build build
+
+      - name: Run tests
+        shell: bash
+        run: ctest --test-dir build/Signal_Test
+
+      - name: Run example on Linux
+        shell: bash
+        run: ./build/Signal_Example/Signal_Example
+        if: runner.os == 'Linux'

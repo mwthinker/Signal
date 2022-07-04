@@ -352,7 +352,7 @@ struct Object {
 int Object::copies = 0;
 
 TEST_F(SignalTest, invokeWithArguments_thenCopiesAreCopiedMaxTwice) {
-	// TODO! Fix Signal to copy max once! Now one extra unneeded copy is made.
+	// TODO! Fix Signal to copy max once (if possible)! Now one extra unneeded copy is made.
 	// Given.
 	int invokations = 0;
 	

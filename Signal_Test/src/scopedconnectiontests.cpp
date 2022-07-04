@@ -16,8 +16,6 @@ protected:
 
 	void TearDown() override {
 	}
-
-	mw::Signal<int> signal;
 };
 
 TEST_F(ScopedConnectionTest, givenScopedConnections_whenGoingOutOfScope_thenSignalSizeDecreesed) {

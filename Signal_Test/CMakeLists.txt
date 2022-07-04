@@ -11,7 +11,7 @@ if (GTest_FOUND)
 	enable_testing()
 
 	add_executable(Signal_Test
-		src/signattests.cpp
+		src/signaltests.cpp
 		src/scopedconnectiontests.cpp
 		${SIGNAL_HEADERS}
 	)
@@ -35,6 +35,9 @@ if (GTest_FOUND)
 			CXX_STANDARD_REQUIRED YES
 			CXX_EXTENSIONS NO
 	)
+	
+	include(GoogleTest)
+	gtest_discover_tests(Signal_Test)
 
 else (GTest_FOUND)
 	message(STATUS "GTest not found, Signal_Test not created")
