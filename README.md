@@ -1,10 +1,14 @@
-# Signal [![CI build][1]][2]
+# mw::Signal ![CI build](https://github.com/mwthinker/Signal/actions/workflows/ci.yml/badge.svg)
+
 A header only Signal Slot library inspired by the corresponding boost library.
 
 The library is using C++20. While using Visual Studio, it must be at least version 12 or higher.
 
-## Building
-CMake and vcpkg is needed.
+## Usage
+Just copy the header file and license file.
+
+## Building project localy
+CMake and vcpkg is needed to run locally.
 
 Inside the project folder, e.g.
 ```bash
