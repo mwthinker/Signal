@@ -1,22 +1,16 @@
-Signal [![CI build][1]][2]
-======
-Is a simple Signal/Slot library inspired by the corresponding boost library.
+# Signal [![CI build][1]][2]
+A header only Signal Slot library inspired by the corresponding boost library.
 
-The library is using C++17. While using Visual Studio, it must be at least version 12 or higher.
+The library is using C++20. While using Visual Studio, it must be at least version 12 or higher.
 
-<p><b>Open source</b></p>
-The project is under the MIT license (see LICENSE.txt).
-
-Building
-======
-CMake must be installed, at least version 3.14. Either use cmake graphical interface, or use the commandline.
+## Building
+CMake and vcpkg is needed.
 
 Inside the project folder, e.g.
 ```bash
-mkdir build
-cd build
-# Creates the build for the library and the test code.
-cmake -D SignalTest=1 .. 
-# Run the tests.
-./SignalTest
+cmake --preset=unix -B build -DSignal_Test=1 -DSignal_Example=1; cmake --build build; ctest --test-dir build/Signal_Test
+./build/Signal_Example/Signal_Example
 ```
+
+## Open source
+The project is under the MIT license (see LICENSE.txt).
