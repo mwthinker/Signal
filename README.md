@@ -1,4 +1,4 @@
-Signal
+Signal [![CI build][1]][2]
 ======
 Is a simple Signal/Slot library inspired by the corresponding boost library.
 
