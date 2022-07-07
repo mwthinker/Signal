@@ -1,16 +1,7 @@
-cmake_minimum_required(VERSION 3.14)
-
-set(VCPKG_ROOT $ENV{VCPKG_ROOT})
-if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-	set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-		CACHE STRING ""
-	)
-	message(STATUS "Use VCPKG CMAKE_TOOLCHAIN_FILE")
-endif ()
-
+cmake_minimum_required(VERSION 3.21)
 project(Signal
 	DESCRIPTION
-		"A simple Signals and Slots library"
+		"A header-only Signals and Slots library"
 	LANGUAGES
 		CXX
 )
@@ -26,7 +17,7 @@ target_include_directories(Signal
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
 )
 
-target_compile_features(Signal INTERFACE cxx_std_17)
+target_compile_features(Signal INTERFACE cxx_std_20)
 
 message(STATUS "Signal_Test is available to add: -DSignal_Test=1")
 option(Signal_Test "Signal_Test project is added" OFF)
