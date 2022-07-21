@@ -15,6 +15,9 @@ jobs:
           - os: ubuntu-22.04
             vcpkgCommitId: '4826ede84084395b0f87476e48ff6d4070eba0e4'
             preset: 'unix'
+          - os: macos-12
+            vcpkgCommitId: '4826ede84084395b0f87476e48ff6d4070eba0e4'
+            preset: 'unix'
 
     steps:
       - name: Check out repository code
@@ -29,9 +32,15 @@ jobs:
         run: g++ --version
         if: runner.os == 'Linux'
 
-      - name: Run CMake with manifest mode vcpkg
+      - name: Run CMake with manifest mode vcpkg (Linux/Windows)
         shell: bash
         run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
+        if: runner.os == 'Linux' || runner.os == 'Windows' 
+
+      - name: Run CMake with manifest mode vcpkg (MacOs)
+        shell: bash
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_C_COMPILER=$(brew --prefix llvm)/bin/clang -DCMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang
+        if: runner.os == 'macOS'
 
       - name: Compile binaries
         shell: bash
