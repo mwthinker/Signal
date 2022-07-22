@@ -32,14 +32,14 @@ jobs:
         run: g++ --version
         if: runner.os == 'Linux'
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        if: runner.os == 'macOS'
-        with:
-          xcode-version: latest-stable
+      - name: Run CMake with manifest mode vcpkg (Linux/Windows)
+        shell: bash
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
+        if: runner.os == 'Linux' || runner.os == 'Windows' 
 
       - name: Run CMake with manifest mode vcpkg (MacOs)
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_CXX_COMPILER=g++-11
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_VERBOSE_MAKEFILE=1
         if: runner.os == 'macOS'
 
       - name: Run CMake with manifest mode vcpkg (MacOs)
