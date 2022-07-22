@@ -32,6 +32,11 @@ jobs:
         run: g++ --version
         if: runner.os == 'Linux'
 
+      - name: Install Ninja on MacOs
+        shell: bash
+        run: brew install ninja
+        if: runner.os == 'macOS'
+
       - name: Run CMake with manifest mode vcpkg (Linux/Windows)
         shell: bash
         run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
