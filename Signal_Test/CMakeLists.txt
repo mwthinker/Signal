@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.21)
 project(Signal_Test
 	DESCRIPTION
 		"Test the project Signal using Catch2"
@@ -27,7 +26,7 @@ if (GTest_FOUND)
 			PRIVATE
 				"/permissive-"
 		)
-	endif (MSVC)
+	endif ()
 
 	set_target_properties(Signal_Test
 		PROPERTIES
@@ -39,6 +38,6 @@ if (GTest_FOUND)
 	include(GoogleTest)
 	gtest_discover_tests(Signal_Test)
 
-else (GTest_FOUND)
+else ()
 	message(STATUS "GTest not found, Signal_Test not created")
-endif (GTest_FOUND)
+endif ()

@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.14)
 project(Signal_Example
 	DESCRIPTION
 		"An example of using the Signal library"
@@ -27,4 +26,4 @@ if (MSVC)
 		PRIVATE
 			"/permissive-"
 	)
-endif (MSVC)
+endif ()
