@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
 	// Test move constructor.
 	Zombie zombie;
-	Zombie zombie2 = std::move(zombie2);
+	Zombie zombie2 = std::move(zombie);
 
 	return 0;
 }

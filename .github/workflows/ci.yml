@@ -32,11 +32,6 @@ jobs:
         run: g++ --version
         if: runner.os == 'Linux'
 
-      - name: Install Ninja on MacOs
-        shell: bash
-        run: brew install ninja
-        if: runner.os == 'macOS'
-
       - name: Run CMake with manifest mode vcpkg (Linux/Windows)
         shell: bash
         run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
@@ -44,7 +39,7 @@ jobs:
 
       - name: Run CMake with manifest mode vcpkg (MacOs)
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_CXX_COMPILER=$(brew --prefix llvm@14)/bin/clang -DCMAKE_VERBOSE_MAKEFILE=1
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_VERBOSE_MAKEFILE=1
         if: runner.os == 'macOS'
 
       - name: Compile binaries

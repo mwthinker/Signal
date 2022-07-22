@@ -32,7 +32,7 @@
         },
         {
             "name": "unix",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "inherits": "vcpkg"
         }
     ]
