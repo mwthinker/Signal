@@ -23,25 +23,23 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
+      - name: Set C++/C compiler on macOs
+        shell: bash
+        run: echo "CC=gcc-11" >> $GITHUB_ENV; echo "CXX=g++-11" >> $GITHUB_ENV; cat "$GITHUB_ENV"
+        if: runner.os == 'macOs'
+
       - uses: friendlyanon/setup-vcpkg@v1
         with:
           committish: ${{ matrix.vcpkgCommitId }}
-          cache: false
 
       - name: GCC version on Linux
         shell: bash
         run: g++ --version
         if: runner.os == 'Linux'
 
-      - name: Run CMake with manifest mode vcpkg (Linux/Windows)
+      - name: Run CMake with manifest mode vcpkg
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1
-        if: runner.os == 'Linux' || runner.os == 'Windows' 
-
-      - name: Run CMake with manifest mode vcpkg (MacOs)
-        shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_VERBOSE_MAKEFILE=1
-        if: runner.os == 'macOS'
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1
 
       - name: Compile binaries
         shell: bash
@@ -51,7 +49,7 @@ jobs:
         shell: bash
         run: ctest --test-dir build/Signal_Test
 
-      - name: Run example on Linux
+      - name: Run example on Linux/macOs
         shell: bash
         run: ./build/Signal_Example/Signal_Example
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' || runner.os == 'macOs'
