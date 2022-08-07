@@ -244,20 +244,71 @@ TEST_F(SignalTest, disconnectingAndConnecting_thenCallbackOrderIsPreserved) {
 
 	[[maybe_unused]] auto c1 = signal.connect([&order]() {
 		EXPECT_EQ(++order, 1);
-		});
+	});
 	[[maybe_unused]] auto c2 = signal.connect([&]() {
 		EXPECT_EQ(++order, 2);
 		[[maybe_unused]] auto tmp = signal.connect([&order]() {
 			EXPECT_EQ(++order, 4);
-			});
 		});
+	});
 	[[maybe_unused]] auto c3 = signal.connect([&]() {
 		EXPECT_EQ(++order, 3);
 		c1.disconnect();
-		});
+	});
 	EXPECT_EQ(3, signal.size());
 
 	// When.
+	signal.invoke();
+
+	// Then.
+	EXPECT_EQ(3, signal.size());
+}
+
+TEST_F(SignalTest, connecting_thenCallbackOrderIsPreserved) {
+	// Given.
+	mw::Signal signal;
+	int order = 0;
+
+	[[maybe_unused]] auto c1 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 1);
+	});
+	[[maybe_unused]] auto c2 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 2);
+	});
+	[[maybe_unused]] auto c3 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 3);
+	});
+	[[maybe_unused]] auto c4 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 4);
+	});
+
+	// When.
+	signal.invoke();
+
+	// Then.
+	EXPECT_EQ(4, signal.size());
+}
+
+TEST_F(SignalTest, disconnecting_thenCallbackOrderIsPreserved) {
+	// Given.
+	mw::Signal signal;
+	int order = 0;
+
+	auto c1 = signal.connect([]() {});
+	[[maybe_unused]] auto c2 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 1);
+	});
+	[[maybe_unused]] auto c3 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 2);
+	});
+	auto c4 = signal.connect([]() {});
+	[[maybe_unused]] auto c5 = signal.connect([&order]() {
+		EXPECT_EQ(++order, 3);
+	});
+
+	// When.
+	c1.disconnect();
+	c4.disconnect();
 	signal.invoke();
 
 	// Then.

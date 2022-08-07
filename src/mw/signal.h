@@ -267,8 +267,7 @@ namespace mw {
 		const auto size = static_cast<int>(functions_.size());
 		// Using index instead of foreach in order to be able to add callbacks during iteration.
 		for (int i = 0; i < size && i < functions_.size(); ++i) {
-			auto& [_, callback] = functions_[i];
-			callback(a...);
+			functions_[i].callback(a...);
 		}
 	}
 
@@ -292,17 +291,15 @@ namespace mw {
 
 	template <typename... A>
 	void Signal<A...>::disconnect(size_t id) {
-		auto size = static_cast<int>(functions_.size());
-		// Using index instead of foreach in order to be able to add callbacks during iteration.
-		for (int i = 0; i < size; ++i) {
-			auto& pair = functions_[i];
+		auto it = std::find_if(functions_.begin(), functions_.end(), [id](const auto& pair) {
 			if (signals::Connection::calculateHash(pair.info) == id) {
 				pair.info->signal = nullptr;
-				std::swap(pair, functions_.back());
-				functions_.pop_back();
-				--size;
-				break;
+				return true;
 			}
+			return false;
+		});
+		if (it != functions_.end()) {
+			functions_.erase(it);
 		}
 	}
 
