@@ -429,6 +429,18 @@ struct A {
 
 TEST_F(SignalTest, testCompilable) {
 	{
+		mw::Signal signal;
+		mw::signals::ScopedConnections s{
+			signal.connect([]() {}),
+			signal.connect([]() {})
+		};
+		s += signal.connect([]() {});
+		s += {
+			signal.connect([]() {}),
+			signal.connect([]() {})
+		};
+	}
+	{
 		mw::Signal<A> signal;
 		auto c = signal.connect([](A) {});
 

@@ -95,12 +95,17 @@ namespace mw {
 
 		class ScopedConnections {
 		public:
-			void operator+=(const Connection& scopedConnection) {
+			ScopedConnections() = default;
+			ScopedConnections(std::initializer_list<ScopedConnection> connections)
+				: connections_{connections} {
+			}
+
+			void operator+=(const ScopedConnection& scopedConnection) {
 				connections_.push_back(scopedConnection);
 			}
 
-			void operator+=(std::initializer_list<Connection> connections) {
-				connections_.insert(connections_.end(), connections.begin(), connections.end());
+			void operator+=(std::initializer_list<ScopedConnection> connections) {
+				connections_.insert(connections_.end(), connections);
 			}
 
 			// Removes all connections.
@@ -110,9 +115,9 @@ namespace mw {
 
 			// Removes all unconnected connections, i.e. all connections with no callback assigned.
 			void cleanUp() {
-				connections_.erase(std::remove_if(connections_.begin(), connections_.end(), [](const ScopedConnection& connection) {
+				std::erase_if(connections_, [](const ScopedConnection& connection) {
 					return !connection.connected();
-				}), connections_.end());
+				});
 			}
 
 		private:
