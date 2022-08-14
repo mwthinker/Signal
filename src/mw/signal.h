@@ -60,7 +60,7 @@ namespace mw {
 			InfoPtr info_;
 		};
 
-		// Automatically disconnects when all copies goes out of scope.
+		// Automatically disconnects when going out of scope.
 		class ScopedConnection {
 		public:
 			ScopedConnection() = default;
@@ -71,10 +71,10 @@ namespace mw {
 				connection_.disconnect();
 			}
 
-			ScopedConnection(const ScopedConnection&) = default;
+			ScopedConnection(const ScopedConnection&) = delete;
+			ScopedConnection& operator=(const ScopedConnection&) = delete;
+			
 			ScopedConnection(ScopedConnection&&) noexcept = default;
-
-			ScopedConnection& operator=(const ScopedConnection&) = default;
 			ScopedConnection& operator=(ScopedConnection&&) noexcept = default;
 
 			void disconnect() {
@@ -93,19 +93,20 @@ namespace mw {
 			Connection connection_;
 		};
 
+		// Automatically disconnects when going out of scope.
 		class ScopedConnections {
 		public:
 			ScopedConnections() = default;
-			ScopedConnections(std::initializer_list<ScopedConnection> connections)
-				: connections_{connections} {
+			ScopedConnections(std::initializer_list<Connection> connections)
+				: connections_(std::vector<ScopedConnection>(connections.begin(), connections.end())) {
 			}
 
-			void operator+=(const ScopedConnection& scopedConnection) {
+			void operator+=(const Connection& scopedConnection) {
 				connections_.push_back(scopedConnection);
 			}
 
-			void operator+=(std::initializer_list<ScopedConnection> connections) {
-				connections_.insert(connections_.end(), connections);
+			void operator+=(std::initializer_list<Connection> connections) {
+				connections_.insert(connections_.end(), connections.begin(), connections.end());
 			}
 
 			// Removes all connections.
@@ -118,6 +119,10 @@ namespace mw {
 				std::erase_if(connections_, [](const ScopedConnection& connection) {
 					return !connection.connected();
 				});
+			}
+
+			int size() const {
+				return static_cast<int>(connections_.size());
 			}
 
 		private:
