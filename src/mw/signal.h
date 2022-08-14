@@ -44,6 +44,9 @@ namespace mw {
 			};
 
 			struct Info {
+				explicit Info(SignalInterface* signal) // TODO! Remove when CLANG std::make_shared can handle it
+					: signal{signal} {
+				}
 				SignalInterface* signal;
 			};
 			using InfoPtr = std::shared_ptr<Info>;
