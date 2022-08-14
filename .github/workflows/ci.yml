@@ -25,7 +25,7 @@ jobs:
 
       - name: Set C++/C compiler on macOs
         shell: bash
-        run: echo "CC=gcc-11" >> $GITHUB_ENV; echo "CXX=g++-11" >> $GITHUB_ENV; cat "$GITHUB_ENV"
+        run: echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; echo "CXX=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; cat "$GITHUB_ENV"
         if: runner.os == 'macOs'
 
       - uses: friendlyanon/setup-vcpkg@v1
