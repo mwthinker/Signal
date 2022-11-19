@@ -18,7 +18,8 @@ local.properties
 .classpath
 .settings/
 .loadpath
-linux_build
+linux_build/
+clang_build/
 
 # External tool builders
 .externalToolBuilders/
