@@ -23,10 +23,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Set C++/C compiler on macOs
+      - name: Set C++/C compiler on macOS
         shell: bash
         run: echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; echo "CXX=$(brew --prefix llvm@14)/bin/clang++" >> $GITHUB_ENV; cat "$GITHUB_ENV"
-        if: runner.os == 'macOs'
+        if: runner.os == 'macOS'
 
       - uses: friendlyanon/setup-vcpkg@v1
         with:
@@ -50,7 +50,7 @@ jobs:
         shell: bash
         run: ctest --test-dir build/Signal_Test
 
-      - name: Run example on Linux/macOs
+      - name: Run example on Linux/macOS
         shell: bash
         run: ./build/Signal_Example/Signal_Example
-        if: runner.os == 'Linux' || runner.os == 'macOs'
+        if: runner.os == 'Linux' || runner.os == 'macOS'

@@ -28,12 +28,22 @@
             "architecture":{
                 "value": "x64",
                 "strategy": "set"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
         {
             "name": "unix",
             "generator": "Unix Makefiles",
-            "inherits": "vcpkg"
+            "inherits": "vcpkg",
+            "condition": {
+                "type": "inList",
+                "string": "${hostSystemName}",
+                "list": ["Linux", "Darwin"]
+            }
         }
     ]
 }
