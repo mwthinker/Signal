@@ -10,13 +10,10 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            vcpkgCommitId: '927006b24c3a28dfd8aa0ec5f8ce43098480a7f1'
             preset: 'windows'
-          - os: ubuntu-22.04
-            vcpkgCommitId: '927006b24c3a28dfd8aa0ec5f8ce43098480a7f1'
+          - os: ubuntu-latest
             preset: 'unix'
-          - os: macos-12
-            vcpkgCommitId: '927006b24c3a28dfd8aa0ec5f8ce43098480a7f1'
+          - os: macos-latest
             preset: 'unix'
 
     steps:
@@ -25,32 +22,43 @@ jobs:
 
       - name: Set C++/C compiler on macOS
         shell: bash
-        run: echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; echo "CXX=$(brew --prefix llvm@14)/bin/clang++" >> $GITHUB_ENV; cat "$GITHUB_ENV"
+        run: echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; echo "CXX=$(brew --prefix llvm@14)/bin/clang++" >> $GITHUB_ENV;
         if: runner.os == 'macOS'
 
-      - uses: friendlyanon/setup-vcpkg@v1
-        with:
-          committish: ${{ matrix.vcpkgCommitId }}
-          cache: true
-
-      - name: GCC version on Linux
+      - name: Set C++ VCPKG_ROOT
         shell: bash
-        run: g++ --version
-        if: runner.os == 'Linux'
+        run: echo VCPKG_ROOT="$VCPKG_INSTALLATION_ROOT" >> "$GITHUB_ENV"; cat "$GITHUB_ENV"
 
-      - name: Run CMake with manifest mode vcpkg
+      - name: Run CMake DEBUG
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Debug
 
-      - name: Compile binaries
+      - name: Compile binaries DEBUG
         shell: bash
-        run: cmake --build build
+        run: cmake --build build_debug
 
-      - name: Run tests
+      - name: Run tests DEBUG
         shell: bash
-        run: ctest --test-dir build/Signal_Test
+        run: ctest --rerun-failed --output-on-failure --test-dir build_debug/Signal_Test
 
-      - name: Run example on Linux/macOS
+      - name: Run example on Linux/macOS DEBUG
         shell: bash
-        run: ./build/Signal_Example/Signal_Example
+        run: ./build_debug/Signal_Example/Signal_Example
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+
+      - name: Run CMake RELEASE
+        shell: bash
+        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compile binaries RELEASE
+        shell: bash
+        run: cmake --build build_release
+
+      - name: Run tests RELEASE
+        shell: bash
+        run: ctest --rerun-failed --output-on-failure --test-dir build_release/Signal_Test
+
+      - name: Run example on Linux/macOS RELEASE
+        shell: bash
+        run: ./build_release/Signal_Example/Signal_Example
         if: runner.os == 'Linux' || runner.os == 'macOS'
