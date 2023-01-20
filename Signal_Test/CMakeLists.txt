@@ -1,6 +1,6 @@
 project(Signal_Test
 	DESCRIPTION
-		"Test the project Signal using Catch2"
+		"Test the project Signal using GTest"
 	LANGUAGES
 		CXX
 )

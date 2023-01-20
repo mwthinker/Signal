@@ -31,7 +31,7 @@ jobs:
 
       - name: Run CMake DEBUG
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Debug
+        run: cmake --preset=${{ matrix.preset }} -B build_debug -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Debug
 
       - name: Compile binaries DEBUG
         shell: bash
@@ -48,7 +48,7 @@ jobs:
 
       - name: Run CMake RELEASE
         shell: bash
-        run: cmake --preset=${{ matrix.preset }} -B build -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Release
+        run: cmake --preset=${{ matrix.preset }} -B build_release -DSignal_Test=1 -DSignal_Example=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DCMAKE_BUILD_TYPE=Release
 
       - name: Compile binaries RELEASE
         shell: bash
