@@ -13,17 +13,10 @@ jobs:
             preset: 'windows'
           - os: ubuntu-latest
             preset: 'unix'
-          - os: macos-12
-            preset: 'unix'
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-
-      - name: Set C++/C compiler on macOS
-        shell: bash
-        run: echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV; echo "CXX=$(brew --prefix llvm@14)/bin/clang++" >> $GITHUB_ENV;
-        if: runner.os == 'macOS'
 
       - name: Set C++ VCPKG_ROOT
         shell: bash
