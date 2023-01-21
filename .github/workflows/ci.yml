@@ -13,7 +13,7 @@ jobs:
             preset: 'windows'
           - os: ubuntu-latest
             preset: 'unix'
-          - os: macos-latest
+          - os: macos-12
             preset: 'unix'
 
     steps:
