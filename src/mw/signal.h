@@ -77,8 +77,8 @@ namespace mw {
 			ScopedConnection(const ScopedConnection&) = delete;
 			ScopedConnection& operator=(const ScopedConnection&) = delete;
 			
-			ScopedConnection(ScopedConnection&&) noexcept = default;
-			ScopedConnection& operator=(ScopedConnection&&) noexcept = default;
+			ScopedConnection(ScopedConnection&&) = delete;
+			ScopedConnection& operator=(ScopedConnection&&) = delete;
 
 			void disconnect() {
 				connection_.disconnect();
@@ -100,12 +100,23 @@ namespace mw {
 		class ScopedConnections {
 		public:
 			ScopedConnections() = default;
+			
 			ScopedConnections(std::initializer_list<Connection> connections)
-				: connections_(std::vector<ScopedConnection>(connections.begin(), connections.end())) {
+				: connections_(connections.begin(), connections.end()) {
 			}
 
-			void operator+=(const Connection& scopedConnection) {
-				connections_.push_back(scopedConnection);
+			~ScopedConnections() {
+				clear();
+			}
+
+			ScopedConnections(const ScopedConnections&) = delete;
+			ScopedConnections& operator=(const ScopedConnections&) = delete;
+
+			ScopedConnections(ScopedConnections&&) = delete;
+			ScopedConnections& operator=(ScopedConnections&&) = delete;
+
+			void operator+=(const Connection& connection) {
+				connections_.emplace_back(connection);
 			}
 
 			void operator+=(std::initializer_list<Connection> connections) {
@@ -114,13 +125,20 @@ namespace mw {
 
 			// Removes all connections.
 			void clear() {
+				for (auto& connection : connections_) {
+					connection.disconnect();
+				}
 				connections_.clear();
 			}
 
 			// Removes all unconnected connections, i.e. all connections with no callback assigned.
 			void cleanUp() {
-				std::erase_if(connections_, [](const ScopedConnection& connection) {
-					return !connection.connected();
+				std::erase_if(connections_, [](Connection& connection) {
+					if (connection.connected()) {
+						connection.disconnect();
+						return true;
+					}
+					return false;
 				});
 			}
 
@@ -129,7 +147,7 @@ namespace mw {
 			}
 
 		private:
-			std::vector<ScopedConnection> connections_;
+			std::vector<Connection> connections_;
 		};
 
 	}
