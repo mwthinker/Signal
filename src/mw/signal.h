@@ -12,7 +12,7 @@ namespace mw {
 
 	namespace signals {
 
-		// Used to disconnect a slot from a signal.
+		/// @brief Used to disconnect a slot from a signal
 		class Connection {
 		public:
 			template <typename...> friend class ::mw::Signal;
@@ -63,7 +63,8 @@ namespace mw {
 			InfoPtr info_;
 		};
 
-		// Automatically disconnects when going out of scope.
+		/// @brief Automatically disconnects slots when going out of scope
+		/// Copy and move is forbidden.
 		class ScopedConnection {
 		public:
 			ScopedConnection() = default;
@@ -96,7 +97,8 @@ namespace mw {
 			Connection connection_;
 		};
 
-		// Automatically disconnects when going out of scope.
+		/// @brief Automatically disconnects all connections stored when going out of scope
+		/// Copy and move is forbidden.
 		class ScopedConnections {
 		public:
 			ScopedConnections() = default;
@@ -152,7 +154,10 @@ namespace mw {
 
 	}
 
-	// A function container, in which the functions stored can be called. A slot/callbacks class.
+	// 
+
+	/// @brief A function container, in which the functions stored can be called. A slot/callbacks class.
+	/// @tparam ... the slots invoke arguments
 	template <typename... A>
 	class Signal : public signals::Connection::SignalInterface {
 	public:
@@ -202,6 +207,11 @@ namespace mw {
 		std::vector<Pair> functions_; // All mapped callbacks.
 	};
 
+	
+	/// @brief Can be used as public member function of Signal, only adding slots are
+	/// available for outside code.
+	/// @tparam Friend the class that contains all functionality of the underlaying signal object
+	/// @tparam ...Args the slots invoke arguments
 	template <typename Friend, typename... Args>
 	class PublicSignal {
 	public:
