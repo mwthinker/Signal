@@ -63,8 +63,7 @@ namespace mw {
 			InfoPtr info_;
 		};
 
-		/// @brief Automatically disconnects slots when going out of scope
-		/// Copy and move is forbidden.
+		/// @brief Automatically disconnects slots when going out of scope.
 		class ScopedConnection {
 		public:
 			ScopedConnection() = default;
@@ -97,8 +96,7 @@ namespace mw {
 			Connection connection_;
 		};
 
-		/// @brief Automatically disconnects all connections stored when going out of scope
-		/// Copy and move is forbidden.
+		/// @brief Automatically disconnects all connections stored when going out of scope.
 		class ScopedConnections {
 		public:
 			ScopedConnections() = default;
@@ -125,7 +123,7 @@ namespace mw {
 				connections_.insert(connections_.end(), connections.begin(), connections.end());
 			}
 
-			// Removes all connections.
+			/// @brief Removes all connections.
 			void clear() {
 				for (auto& connection : connections_) {
 					connection.disconnect();
@@ -133,7 +131,7 @@ namespace mw {
 				connections_.clear();
 			}
 
-			// Removes all unconnected connections, i.e. all connections with no callback assigned.
+			/// @brief Removes all unconnected connections, i.e. all connections with no callback assigned.
 			void cleanUp() {
 				std::erase_if(connections_, [](Connection& connection) {
 					if (connection.connected()) {
@@ -144,6 +142,8 @@ namespace mw {
 				});
 			}
 
+			/// @brief Return the number of connections.
+			/// @return number of connections.
 			int size() const {
 				return static_cast<int>(connections_.size());
 			}
@@ -154,14 +154,12 @@ namespace mw {
 
 	}
 
-	// 
-
-	/// @brief A function container, in which the functions stored can be called. A slot/callbacks class.
-	/// @tparam ... the slots invoke arguments
-	template <typename... A>
+	/// @brief Contains a list of functions that can be called. A slot/callbacks class.
+	/// @tparam ...A the slots invoke arguments
+	template <typename... Args>
 	class Signal : public signals::Connection::SignalInterface {
 	public:
-		using Callback = std::function<void(A...)>;
+		using Callback = std::function<void(Args...)>;
 
 		Signal() = default;
 		~Signal();
@@ -172,8 +170,7 @@ namespace mw {
 		Signal(Signal&&) noexcept;
 		Signal& operator=(Signal&&) noexcept;
 
-		[[nodiscard]]
-		signals::Connection connect(const Callback& callback);
+		[[nodiscard]] signals::Connection connect(const Callback& callback);
 
 		template <typename... Params>
 		void operator()(Params&&... params);
@@ -183,7 +180,7 @@ namespace mw {
 
 		template <typename T, typename... TArgs>
 		[[nodiscard]] signals::Connection connect(T* object, void(T::* ptr)(TArgs... args)) {
-			return connect([object, ptr](A... args) {
+			return connect([object, ptr](Args... args) {
 				(object->*ptr)(args...);
 			});
 		}
@@ -273,38 +270,37 @@ namespace mw {
 		return info_ && info_->signal != nullptr;
 	}
 
-	template <typename... A>
-	Signal<A...>::Signal::~Signal() {
+	template <typename... Args>
+	Signal<Args...>::Signal::~Signal() {
 		clear();
 	}
 
-	template <typename... A>
-	Signal<A...>::Signal(Signal<A...>&& signal) noexcept
-		: functions_{std::move(signal.functions_)} {
-	}
+	template <typename... Args>
+	Signal<Args...>::Signal(Signal<Args...>&& signal) noexcept
+		: functions_{std::move(signal.functions_)} {}
 
-	template <typename... A>
-	Signal<A...>& Signal<A...>::operator=(Signal<A...>&& signal) noexcept {
+	template <typename... Args>
+	Signal<Args...>& Signal<Args...>::operator=(Signal<Args...>&& signal) noexcept {
 		functions_ = std::move(signal.functions_);
 		return *this;
 	}
 
-	template <typename... A>
-	signals::Connection Signal<A...>::connect(const Callback& callback) {
+	template <typename... Args>
+	signals::Connection Signal<Args...>::connect(const Callback& callback) {
 		auto c = std::make_shared<signals::Connection::Info>(this);
 		functions_.push_back({c, callback});
 		return signals::Connection(c);
 	}
 
-	template <typename... A>
+	template <typename... Args>
 	template <typename... Params>
-	void Signal<A...>::operator()(Params&&... a) {
+	void Signal<Args...>::operator()(Params&&... a) {
 		invoke(std::forward<Params>(a)...);
 	}
 
-	template <typename... A>
+	template <typename... Args>
 	template <typename... Params>
-	void Signal<A...>::invoke(Params&&... a) {
+	void Signal<Args...>::invoke(Params&&... a) {
 		const auto size = static_cast<int>(functions_.size());
 		// Using index instead of foreach in order to be able to add callbacks during iteration.
 		for (int i = 0; i < size && i < functions_.size(); ++i) {
@@ -312,26 +308,26 @@ namespace mw {
 		}
 	}
 
-	template <typename... A>
-	void Signal<A...>::clear() {
+	template <typename... Args>
+	void Signal<Args...>::clear() {
 		for (auto& [info, callback] : functions_) {
 			info->signal = nullptr;
 		}
 		functions_.clear();
 	}
 
-	template <typename... A>
-	int Signal<A...>::size() const noexcept {
+	template <typename... Args>
+	int Signal<Args...>::size() const noexcept {
 		return static_cast<int>(functions_.size());
 	}
 
-	template <typename... A>
-	bool Signal<A...>::empty() const noexcept {
+	template <typename... Args>
+	bool Signal<Args...>::empty() const noexcept {
 		return functions_.empty();
 	}
 
-	template <typename... A>
-	void Signal<A...>::disconnect(size_t id) {
+	template <typename... Args>
+	void Signal<Args...>::disconnect(size_t id) {
 		auto it = std::find_if(functions_.begin(), functions_.end(), [id](const auto& pair) {
 			if (signals::Connection::calculateHash(pair.info) == id) {
 				pair.info->signal = nullptr;
