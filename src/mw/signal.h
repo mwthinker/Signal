@@ -44,23 +44,16 @@ namespace mw {
 			};
 
 			struct Info {
-				explicit Info(SignalInterface* signal) // TODO! Remove when CLANG std::make_shared can handle it
-					: signal{signal} {
-				}
+				int id;
 				SignalInterface* signal;
 			};
-			using InfoPtr = std::shared_ptr<Info>;
-
-			static inline size_t calculateHash(const InfoPtr& info) {
-				return std::hash<InfoPtr>{}(info);
-			}
 
 			// Is called from mw::Signal to bind a connection.
-			explicit Connection(InfoPtr c)
+			explicit Connection(std::shared_ptr<Info> c)
 				: info_{std::move(c)} {
 			}
 
-			InfoPtr info_;
+			std::weak_ptr<Info> info_;
 		};
 
 		/// @brief Automatically disconnects slots when going out of scope.
@@ -192,12 +185,13 @@ namespace mw {
 		bool empty() const noexcept;
 
 	private:
-		using InfoPtr = signals::Connection::InfoPtr;
+		static inline int key = 0;
+		using Info = signals::Connection::Info;
 
 		void disconnect(size_t id) override;
 
 		struct Pair {
-			InfoPtr info;
+			std::shared_ptr<Info> info;
 			Callback callback;
 		};
 
@@ -261,13 +255,21 @@ namespace mw {
 	// ------------ Definitions ------------
 
 	inline void signals::Connection::disconnect() {
-		if (info_ && info_->signal != nullptr) {
-			info_->signal->disconnect(Connection::calculateHash(info_));
+		auto info = info_.lock();
+		if (info && info->signal != nullptr) {
+			auto& signal = *info->signal;
+			info->signal = nullptr;
+			auto id = info->id;
+
+			// Avoid potential circular shared_ptr references.
+			info.reset();
+			signal.disconnect(id);
 		}
 	}
 
 	inline bool signals::Connection::connected() const {
-		return info_ && info_->signal != nullptr;
+		auto info = info_.lock();
+		return info && info->signal != nullptr;
 	}
 
 	template <typename... Args>
@@ -287,7 +289,7 @@ namespace mw {
 
 	template <typename... Args>
 	signals::Connection Signal<Args...>::connect(const Callback& callback) {
-		auto c = std::make_shared<signals::Connection::Info>(this);
+		auto c = std::make_shared<signals::Connection::Info>(++key, this);
 		functions_.push_back({c, callback});
 		return signals::Connection(c);
 	}
@@ -329,8 +331,7 @@ namespace mw {
 	template <typename... Args>
 	void Signal<Args...>::disconnect(size_t id) {
 		auto it = std::find_if(functions_.begin(), functions_.end(), [id](const auto& pair) {
-			if (signals::Connection::calculateHash(pair.info) == id) {
-				pair.info->signal = nullptr;
+			if (pair.info->id == id) {
 				return true;
 			}
 			return false;
