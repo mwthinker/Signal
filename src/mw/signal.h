@@ -40,7 +40,7 @@ namespace mw {
 				SignalInterface(const SignalInterface&) = delete;
 				SignalInterface& operator=(const SignalInterface&) = delete;
 
-				virtual void disconnect(size_t id) = 0;
+				virtual void disconnect(size_t hash) = 0;
 			};
 
 			struct Key {
@@ -191,14 +191,14 @@ namespace mw {
 	private:
 		using KeyPtr = signals::Connection::KeyPtr;
 
-		void disconnect(size_t id) override;
+		void disconnect(size_t hash) override;
 
-		struct Pair {
+		struct KeyCallback {
 			KeyPtr key;
 			Callback callback;
 		};
 
-		std::vector<Pair> functions_; // All mapped callbacks.
+		std::vector<KeyCallback> callbacks_;
 	};
 
 	
@@ -274,18 +274,18 @@ namespace mw {
 
 	template <typename... Args>
 	Signal<Args...>::Signal(Signal<Args...>&& signal) noexcept
-		: functions_{std::move(signal.functions_)} {}
+		: callbacks_{std::move(signal.callbacks_)} {}
 
 	template <typename... Args>
 	Signal<Args...>& Signal<Args...>::operator=(Signal<Args...>&& signal) noexcept {
-		functions_ = std::move(signal.functions_);
+		callbacks_ = std::move(signal.callbacks_);
 		return *this;
 	}
 
 	template <typename... Args>
 	signals::Connection Signal<Args...>::connect(const Callback& callback) {
 		auto c = std::make_shared<signals::Connection::Key>(this);
-		functions_.push_back({c, callback});
+		callbacks_.push_back({c, callback});
 		return signals::Connection(c);
 	}
 
@@ -298,42 +298,42 @@ namespace mw {
 	template <typename... Args>
 	template <typename... Params>
 	void Signal<Args...>::invoke(Params&&... a) {
-		const auto size = static_cast<int>(functions_.size());
+		const auto size = static_cast<int>(callbacks_.size());
 		// Using index instead of foreach in order to be able to add callbacks during iteration.
-		for (int i = 0; i < size && i < functions_.size(); ++i) {
-			functions_[i].callback(a...);
+		for (int i = 0; i < size && i < callbacks_.size(); ++i) {
+			callbacks_[i].callback(a...);
 		}
 	}
 
 	template <typename... Args>
 	void Signal<Args...>::clear() {
-		for (auto& [key, callback] : functions_) {
+		for (auto& [key, callback] : callbacks_) {
 			key->signal = nullptr;
 		}
-		functions_.clear();
+		callbacks_.clear();
 	}
 
 	template <typename... Args>
 	int Signal<Args...>::size() const noexcept {
-		return static_cast<int>(functions_.size());
+		return static_cast<int>(callbacks_.size());
 	}
 
 	template <typename... Args>
 	bool Signal<Args...>::empty() const noexcept {
-		return functions_.empty();
+		return callbacks_.empty();
 	}
 
 	template <typename... Args>
-	void Signal<Args...>::disconnect(size_t key) {
-		auto it = std::find_if(functions_.begin(), functions_.end(), [key](const Pair& pair) {
-			if (signals::Connection::calculateHash(pair.key) == key) {
+	void Signal<Args...>::disconnect(size_t hash) {
+		auto it = std::find_if(callbacks_.begin(), callbacks_.end(), [hash](const KeyCallback& keyCallback) {
+			if (signals::Connection::calculateHash(keyCallback.key) == hash) {
 				return true;
 			}
 			return false;
 		});
-		if (it != functions_.end()) {
+		if (it != callbacks_.end()) {
 			it->key->signal = nullptr;
-			functions_.erase(it);
+			callbacks_.erase(it);
 		}
 	}
 
