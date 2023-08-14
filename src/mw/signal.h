@@ -43,24 +43,21 @@ namespace mw {
 				virtual void disconnect(size_t id) = 0;
 			};
 
-			struct Info {
-				explicit Info(SignalInterface* signal) // TODO! Remove when CLANG std::make_shared can handle it
-					: signal{signal} {
-				}
+			struct Key {
 				SignalInterface* signal;
 			};
-			using InfoPtr = std::shared_ptr<Info>;
+			using KeyPtr = std::shared_ptr<Key>;
 
-			static inline size_t calculateHash(const InfoPtr& info) {
-				return std::hash<InfoPtr>{}(info);
+			static inline size_t calculateHash(const KeyPtr& key) {
+				return std::hash<KeyPtr>{}(key);
 			}
 
 			// Is called from mw::Signal to bind a connection.
-			explicit Connection(InfoPtr c)
-				: info_{std::move(c)} {
+			explicit Connection(KeyPtr c)
+				: key_{std::move(c)} {
 			}
 
-			InfoPtr info_;
+			KeyPtr key_;
 		};
 
 		/// @brief Automatically disconnects slots when going out of scope.
@@ -192,12 +189,12 @@ namespace mw {
 		bool empty() const noexcept;
 
 	private:
-		using InfoPtr = signals::Connection::InfoPtr;
+		using KeyPtr = signals::Connection::KeyPtr;
 
 		void disconnect(size_t id) override;
 
 		struct Pair {
-			InfoPtr info;
+			KeyPtr key;
 			Callback callback;
 		};
 
@@ -261,13 +258,13 @@ namespace mw {
 	// ------------ Definitions ------------
 
 	inline void signals::Connection::disconnect() {
-		if (info_ && info_->signal != nullptr) {
-			info_->signal->disconnect(Connection::calculateHash(info_));
+		if (key_ && key_->signal != nullptr) {
+			key_->signal->disconnect(Connection::calculateHash(key_));
 		}
 	}
 
 	inline bool signals::Connection::connected() const {
-		return info_ && info_->signal != nullptr;
+		return key_ && key_->signal != nullptr;
 	}
 
 	template <typename... Args>
@@ -287,7 +284,7 @@ namespace mw {
 
 	template <typename... Args>
 	signals::Connection Signal<Args...>::connect(const Callback& callback) {
-		auto c = std::make_shared<signals::Connection::Info>(this);
+		auto c = std::make_shared<signals::Connection::Key>(this);
 		functions_.push_back({c, callback});
 		return signals::Connection(c);
 	}
@@ -310,8 +307,8 @@ namespace mw {
 
 	template <typename... Args>
 	void Signal<Args...>::clear() {
-		for (auto& [info, callback] : functions_) {
-			info->signal = nullptr;
+		for (auto& [key, callback] : functions_) {
+			key->signal = nullptr;
 		}
 		functions_.clear();
 	}
@@ -327,15 +324,15 @@ namespace mw {
 	}
 
 	template <typename... Args>
-	void Signal<Args...>::disconnect(size_t id) {
-		auto it = std::find_if(functions_.begin(), functions_.end(), [id](const auto& pair) {
-			if (signals::Connection::calculateHash(pair.info) == id) {
-				pair.info->signal = nullptr;
+	void Signal<Args...>::disconnect(size_t key) {
+		auto it = std::find_if(functions_.begin(), functions_.end(), [key](const Pair& pair) {
+			if (signals::Connection::calculateHash(pair.key) == key) {
 				return true;
 			}
 			return false;
 		});
 		if (it != functions_.end()) {
+			it->key->signal = nullptr;
 			functions_.erase(it);
 		}
 	}
