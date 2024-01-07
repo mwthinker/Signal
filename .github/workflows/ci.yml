@@ -37,15 +37,18 @@ jobs:
       - name: Run code coverage
         shell: bash
         run: |
-          sudo apt install lcov
+          sudo apt-get install lcov
           cd build_debug
           lcov -c -d . -b ../src --no-external -o lcov.info
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        if: runner.os == 'Linux'
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./build_debug/
+          files: ./lcov.info
+        if: runner.os == 'Linux'
 
       - name: Run example on Linux/macOS DEBUG
         shell: bash
