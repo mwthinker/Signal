@@ -34,6 +34,18 @@ jobs:
         shell: bash
         run: ctest --rerun-failed --output-on-failure --test-dir build_debug/Signal_Test
 
+      - name: Run code coverage
+        shell: bash
+        run: | 
+          cd /build_debug
+          lcov -c -d . -b ../src --no-external -o lcov.info
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Run example on Linux/macOS DEBUG
         shell: bash
         run: ./build_debug/Signal_Example/Signal_Example
