@@ -40,14 +40,15 @@ jobs:
           sudo apt-get install lcov
           cd build_debug
           lcov -c -d . -b ../src --no-external -o lcov.info
+          ls -ltr
         if: runner.os == 'Linux'
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./build_debug/
-          files: ./lcov.info
+          directory: build_debug
+          files: lcov.info
         if: runner.os == 'Linux'
 
       - name: Run example on Linux/macOS DEBUG
