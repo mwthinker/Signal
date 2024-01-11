@@ -12,11 +12,16 @@ set(SIGNAL_HEADERS
 
 add_library(Signal INTERFACE)
 
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+if (CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+	target_compile_options(Signal INTERFACE --coverage)
+	target_link_options(Signal INTERFACE --coverage)
+endif ()
+
 target_include_directories(Signal
 	INTERFACE
 		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
 )
-
 target_compile_features(Signal INTERFACE cxx_std_20)
 
 message(STATUS "Signal_Test is available to add: -DSignal_Test=1")
