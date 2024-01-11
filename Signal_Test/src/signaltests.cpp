@@ -41,6 +41,40 @@ TEST_F(SignalTest, connectionAdded_thenSignalNotEmpty) {
 	EXPECT_EQ(1, signal.size());
 }
 
+TEST_F(SignalTest, connectionAssignedCopiedAndDisconnected_thenCopiedConnectionIsDisconnected) {
+	// Given.
+	mw::Signal signal;
+
+	// When.
+	auto connection = signal.connect(emptyCallback);
+	EXPECT_TRUE(connection.connected());
+	mw::signals::Connection copiedConnection;
+	EXPECT_FALSE(copiedConnection.connected());
+	copiedConnection = connection;
+	EXPECT_TRUE(copiedConnection.connected());
+	copiedConnection.disconnect();
+
+	// Then.
+	EXPECT_FALSE(connection.connected());
+	EXPECT_FALSE(copiedConnection.connected());
+}
+
+TEST_F(SignalTest, connectionConstuctorCopiedAndDisconnected_thenCopiedConnectionIsDisconnected) {
+	// Given.
+	mw::Signal signal;
+
+	// When.
+	auto connection = signal.connect(emptyCallback);
+	EXPECT_TRUE(connection.connected());
+	mw::signals::Connection copiedConnection = connection;
+	EXPECT_TRUE(copiedConnection.connected());
+	copiedConnection.disconnect();
+
+	// Then.
+	EXPECT_FALSE(connection.connected());
+	EXPECT_FALSE(copiedConnection.connected());
+}
+
 TEST_F(SignalTest, connectionsAdded_thenSignalHasCorrectSize) {
 	// Given.
 	mw::Signal signal;

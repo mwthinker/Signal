@@ -1,4 +1,4 @@
-# mw::Signal [![CI build](https://github.com/mwthinker/Signal/actions/workflows/ci.yml/badge.svg)](https://github.com/mwthinker/Signal/actions/workflows/ci.yml)
+# mw::Signal [![CI build](https://github.com/mwthinker/Signal/actions/workflows/ci.yml/badge.svg)](https://github.com/mwthinker/Signal/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/mwthinker/Signal/graph/badge.svg?token=6JHBM2BKC4)](https://codecov.io/gh/mwthinker/Signal)
 
 A header only Signal Slot library inspired by the corresponding boost library.
 
