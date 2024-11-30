@@ -11,6 +11,7 @@ set(SIGNAL_HEADERS
 )
 
 add_library(Signal INTERFACE)
+add_library(Signal::Signal ALIAS Signal)
 
 option(CODE_COVERAGE "Enable coverage reporting" OFF)
 if (CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
