@@ -4,6 +4,8 @@ project(Signal
 		"A header-only Signals and Slots library"
 	LANGUAGES
 		CXX
+	VERSION
+		1.0.0
 )
 
 set(SIGNAL_HEADERS
@@ -21,7 +23,8 @@ endif ()
 
 target_include_directories(Signal
 	INTERFACE
-		"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+		$<INSTALL_INTERFACE:include/Signal>
 )
 target_compile_features(Signal INTERFACE cxx_std_20)
 
@@ -36,3 +39,53 @@ option(Signal_Example "Add Signal_Example project." OFF)
 if (Signal_Example)
 	add_subdirectory(Signal_Example)
 endif ()
+
+
+# -------------------------------------------------------------------------
+# Install
+install(TARGETS Signal
+	EXPORT SignalTargets
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	INCLUDES DESTINATION include
+)
+
+install(DIRECTORY src/mw/
+	DESTINATION include/Signal/mw
+	FILES_MATCHING PATTERN "*.h"
+)
+
+include(CMakePackageConfigHelpers)
+
+# Export the package configuration
+install(EXPORT SignalTargets
+	FILE SignalTargets.cmake
+	NAMESPACE Signal::
+	DESTINATION share/cmake/Signal
+)
+
+# Generate the package configuration file
+configure_package_config_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/SignalConfig.cmake.in
+	${CMAKE_CURRENT_BINARY_DIR}/SignalConfig.cmake
+	INSTALL_DESTINATION share/cmake/Signal
+)
+
+# Install the generated package configuration file
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalConfig.cmake
+	DESTINATION share/cmake/Signal
+)
+
+# Install the package configuration file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+	${CMAKE_CURRENT_BINARY_DIR}/SignalConfigVersion.cmake
+	VERSION ${PROJECT_VERSION}
+	COMPATIBILITY AnyNewerVersion
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalConfigVersion.cmake
+	DESTINATION share/cmake/Signal
+)
+
+install(FILES LICENSE.txt DESTINATION share/doc/Signal)

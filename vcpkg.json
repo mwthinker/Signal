@@ -1,7 +1,6 @@
 {
 	"name": "signal",
-	"version-string": "0.1.0",
-	"port-version": 1,
+	"version-string": "1.0.0",
 	"homepage": "https://github.com/mwthinker/Signal",
 	"description": "A simple Signals and Slots library based on C++17.",
 	"license": "MIT",

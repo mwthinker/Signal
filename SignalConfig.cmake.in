@@ -1,0 +1,4 @@
+@PACKAGE_INIT@
+
+# No dependencies required for this project
+include("${CMAKE_CURRENT_LIST_DIR}/SignalTargets.cmake")
