@@ -1,8 +1,8 @@
 {
 	"name": "signal",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"homepage": "https://github.com/mwthinker/Signal",
-	"description": "A simple Signals and Slots library based on C++17.",
+	"description": "A simple Signals and Slots library based on C++20.",
 	"license": "MIT",
 	"dependencies": [
 		"gtest"
