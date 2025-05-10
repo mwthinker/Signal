@@ -131,11 +131,7 @@ namespace mw {
 			/// @brief Removes all unconnected connections, i.e. all connections with no callback assigned.
 			void cleanUp() {
 				std::erase_if(connections_, [](Connection& connection) {
-					if (connection.connected()) {
-						connection.disconnect();
-						return true;
-					}
-					return false;
+					return !connection.connected();
 				});
 			}
 
