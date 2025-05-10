@@ -157,6 +157,49 @@ TEST_F(SignalTest, removeConnection_whenInvoked_thenCallbackIsNotInvoked) {
 	EXPECT_FALSE(invoked);
 }
 
+TEST_F(SignalTest, moveSignal_disconnectConnectionFromMovedSignal_usingMoveConstructor) {
+	// Given.
+	mw::Signal signal;
+	auto connection = signal.connect(emptyCallback);
+
+	// When.
+	mw::Signal movedSignal = std::move(signal);
+
+	// Then.
+	EXPECT_EQ(0, signal.size());
+	EXPECT_EQ(1, movedSignal.size());
+	EXPECT_TRUE(connection.connected());
+
+	// When
+	connection.disconnect();
+
+	// Then
+	EXPECT_FALSE(connection.connected());
+	EXPECT_EQ(0, movedSignal.size());
+}
+
+TEST_F(SignalTest, moveSignal_disconnectConnectionFromMovedSignal_usingMoveAssignment) {
+	// Given.
+	mw::Signal signal;
+	auto connection = signal.connect(emptyCallback);
+
+	// When.
+	mw::Signal movedSignal;
+	movedSignal = std::move(signal);
+
+	// Then.
+	EXPECT_EQ(0, signal.size());
+	EXPECT_EQ(1, movedSignal.size());
+	EXPECT_TRUE(connection.connected());
+
+	// When
+	connection.disconnect();
+
+	// Then
+	EXPECT_FALSE(connection.connected());
+	EXPECT_EQ(0, movedSignal.size());
+}
+
 TEST_F(SignalTest, moveSignalToNewSignalObject_thenNewSignalShallContainAllConnections) {
 	// Given.
 	mw::Signal signal;

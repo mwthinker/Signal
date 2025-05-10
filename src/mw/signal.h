@@ -147,7 +147,7 @@ namespace mw {
 
 	}
 
-	/// @brief Contains a list of functions that can be called. A slot/callbacks class.
+	/// @brief Contains a list of functions that can be called. A slot/callbacks class. Not thread safe.
 	/// @tparam ...A the slots invoke arguments
 	template <typename... Args>
 	class Signal : public signals::Connection::SignalInterface {
@@ -270,11 +270,28 @@ namespace mw {
 
 	template <typename... Args>
 	Signal<Args...>::Signal(Signal<Args...>&& signal) noexcept
-		: callbacks_{std::move(signal.callbacks_)} {}
+		: callbacks_{std::move(signal.callbacks_)} {
+		
+		for (auto& keyCallback : callbacks_) {
+			if (keyCallback.key) {
+				keyCallback.key->signal = this;
+			}
+		}
+		signal.clear();
+	}
 
 	template <typename... Args>
 	Signal<Args...>& Signal<Args...>::operator=(Signal<Args...>&& signal) noexcept {
-		callbacks_ = std::move(signal.callbacks_);
+		if (this != &signal) {
+			callbacks_ = std::move(signal.callbacks_);
+			
+			for (auto& keyCallback : callbacks_) {
+				if (keyCallback.key) {
+					keyCallback.key->signal = this;
+				}
+			}
+			signal.clear();
+		}
 		return *this;
 	}
 
