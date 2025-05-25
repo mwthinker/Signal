@@ -5,7 +5,7 @@ project(Signal
 	LANGUAGES
 		CXX
 	VERSION
-		1.0.1
+		1.0.2
 )
 
 set(SIGNAL_HEADERS
@@ -24,7 +24,7 @@ endif ()
 target_include_directories(Signal
 	INTERFACE
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-		$<INSTALL_INTERFACE:include/Signal>
+		$<INSTALL_INTERFACE:include/signal>
 )
 target_compile_features(Signal INTERFACE cxx_std_20)
 
@@ -52,7 +52,7 @@ install(TARGETS Signal
 )
 
 install(DIRECTORY src/mw/
-	DESTINATION include/Signal/mw
+	DESTINATION include/signal/mw
 	FILES_MATCHING PATTERN "*.h"
 )
 
@@ -62,19 +62,19 @@ include(CMakePackageConfigHelpers)
 install(EXPORT SignalTargets
 	FILE SignalTargets.cmake
 	NAMESPACE Signal::
-	DESTINATION share/cmake/Signal
+	DESTINATION share/cmake/signal
 )
 
 # Generate the package configuration file
 configure_package_config_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/SignalConfig.cmake.in
 	${CMAKE_CURRENT_BINARY_DIR}/SignalConfig.cmake
-	INSTALL_DESTINATION share/cmake/Signal
+	INSTALL_DESTINATION share/cmake/signal
 )
 
 # Install the generated package configuration file
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalConfig.cmake
-	DESTINATION share/cmake/Signal
+	DESTINATION share/cmake/signal
 )
 
 # Install the package configuration file
@@ -85,7 +85,7 @@ write_basic_package_version_file(
 	COMPATIBILITY AnyNewerVersion
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalConfigVersion.cmake
-	DESTINATION share/cmake/Signal
+	DESTINATION share/cmake/signal
 )
 
-install(FILES LICENSE.txt DESTINATION share/doc/Signal)
+install(FILES LICENSE.txt DESTINATION share/doc/signal)
