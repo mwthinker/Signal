@@ -5,7 +5,7 @@ project(Signal
 	LANGUAGES
 		CXX
 	VERSION
-		1.0.2
+		1.0.3
 )
 
 set(SIGNAL_HEADERS

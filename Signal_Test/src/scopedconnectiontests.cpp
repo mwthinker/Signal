@@ -93,3 +93,26 @@ TEST_F(ScopedConnectionTest, givenScopedConnections_whenCleanUp_thenDisconnected
 	signal.invoke();
 	EXPECT_EQ(2, called);
 }
+
+TEST_F(ScopedConnectionTest, givenConnection_whenAssignedToScopedConnection_thenPreviousConnectionIsDisconnected) {
+	// Given.
+	mw::Signal signal;
+	bool called1 = false;
+	auto connection = signal.connect(([&]() { called1 = true; }));
+	EXPECT_TRUE(connection.connected());
+	EXPECT_EQ(1, signal.size());
+	
+	// When.
+	bool called2 = false;
+	mw::signals::ScopedConnection scopedConnection{connection};
+	EXPECT_TRUE(connection.connected());
+	scopedConnection = signal.connect(([&]() { called2 = 2; }));
+	signal.invoke();
+	
+	// Then.
+	EXPECT_TRUE(scopedConnection.connected());
+	EXPECT_FALSE(connection.connected());
+	EXPECT_EQ(1, signal.size());
+	EXPECT_FALSE(called1);
+	EXPECT_TRUE(called2);
+}

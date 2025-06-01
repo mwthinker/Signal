@@ -67,6 +67,14 @@ namespace mw {
 			ScopedConnection(const Connection& connection)
 				: connection_{connection} {
 			}
+
+			/// @brief Assigns a new connection to the scoped connection, disconnecting the previous one.
+			ScopedConnection& operator=(const Connection& connection) {
+				connection_.disconnect();
+				connection_ = connection;
+				return *this;
+			}
+
 			~ScopedConnection() {
 				connection_.disconnect();
 			}
