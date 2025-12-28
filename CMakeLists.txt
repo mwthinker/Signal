@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 4.2)
 project(Signal
 	DESCRIPTION
 		"A header-only Signals and Slots library"
 	LANGUAGES
 		CXX
 	VERSION
-		1.0.3
+		1.0.4
 )
 
 set(SIGNAL_HEADERS
@@ -26,7 +26,7 @@ target_include_directories(Signal
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 		$<INSTALL_INTERFACE:include/signal>
 )
-target_compile_features(Signal INTERFACE cxx_std_20)
+target_compile_features(Signal INTERFACE cxx_std_23)
 
 message(STATUS "Signal_Test is available to add: -DSignal_Test=1")
 option(Signal_Test "Signal_Test project is added" OFF)
@@ -78,7 +78,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SignalConfig.cmake
 )
 
 # Install the package configuration file
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
 	${CMAKE_CURRENT_BINARY_DIR}/SignalConfigVersion.cmake
 	VERSION ${PROJECT_VERSION}

@@ -1,8 +1,8 @@
 {
-    "version": 3,
+    "version": 10,
     "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 21,
+        "major": 4,
+        "minor": 2,
         "patch": 0
     },
     "configurePresets": [
@@ -18,7 +18,7 @@
         },
         {
             "name": "windows",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "inherits": "vcpkg",
             "vendor": {
                     "microsoft.com/VisualStudioSettings/CMake/1.0": {
